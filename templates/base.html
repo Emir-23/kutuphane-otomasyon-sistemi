@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Atlas Kütüphane{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            error: "#ba1a1a",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#f1ede5",
+            "surface-variant": "#e6e2da",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "on-surface": "#1c1c17",
+            secondary: "#77592f",
+            "on-secondary-fixed": "#291800",
+            outline: "#737875",
+            "on-surface-variant": "#424845",
+            "on-tertiary-container": "#5c9b76",
+            "surface-container-high": "#ece8e0",
+            "secondary-fixed-dim": "#e7c08d",
+            "on-primary": "#ffffff",
+            "primary-fixed-dim": "#b9cbc1",
+            "on-primary-container": "#81928a",
+            "surface-container-low": "#f7f3eb",
+            "secondary-fixed": "#ffddb3",
+            "primary-container": "#1b2a24",
+            primary: "#061510",
+            surface: "#fdf9f1",
+            background: "#fdf9f1",
+            "tertiary-fixed": "#aff1c7",
+            "tertiary-fixed-dim": "#94d5ac",
+            "on-tertiary-fixed-variant": "#0c5133",
+            "surface-container-highest": "#e6e2da",
+            "inverse-on-surface": "#f4f0e8"
+          },
+          borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem" },
+          spacing: {
+            gutter: "1.5rem", "space-xl": "2.5rem", "space-xs": "0.25rem",
+            "space-sm": "0.5rem", "space-md": "1rem", "space-lg": "1.5rem", margin: "2rem"
+          },
+          fontFamily: {
+            display: ["Playfair Display", "serif"],
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: "Plus Jakarta Sans", sans-serif; }
+    .font-display { font-family: "Playfair Display", serif; }
+    .material-symbols-outlined { font-size: 1.125rem; vertical-align: middle; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-surface text-on-surface antialiased">
+{% if personel %}
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-primary-container z-50 flex flex-col justify-between py-space-lg">
+  <div class="flex flex-col">
+    <div class="flex items-center gap-space-sm px-space-lg pb-space-lg">
+      <div class="w-8 h-8 rounded bg-secondary/30 flex items-center justify-center text-secondary-fixed">
+        <span class="material-symbols-outlined">menu_book</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-display text-surface text-base tracking-tight leading-none">Atlas</span>
+        <span class="text-[11px] uppercase tracking-wider text-on-primary-container mt-space-xs">Kütüphane</span>
+      </div>
+    </div>
+    <div class="px-space-md pt-space-md">
+      <p class="px-space-sm text-[11px] uppercase tracking-wider text-on-primary-container mb-space-sm">Katalog &amp; Dolaşım</p>
+      <nav class="flex flex-col gap-space-xs">
+        {% set links = [
+          ('panel', 'panel', 'dashboard', 'Panel'),
+          ('kitaplar', 'kitaplar', 'menu_book', 'Kitaplar'),
+          ('uyeler', 'uyeler', 'group', 'Üyeler'),
+          ('odunc', 'odunc', 'swap_horiz', 'Ödünç'),
+          ('cezalar', 'cezalar', 'receipt_long', 'Cezalar'),
+          ('raporlar', 'raporlar', 'analytics', 'Raporlar')
+        ] %}
+        {% for endpoint, key, icon, label in links %}
+        <a href="{{ url_for(endpoint) }}"
+           class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-colors
+           {% if active == key %}bg-surface/10 text-surface border-l-2 border-secondary font-semibold{% else %}text-primary-fixed-dim hover:bg-surface/5 hover:text-surface{% endif %}">
+          <span class="material-symbols-outlined">{{ icon }}</span>
+          <span class="text-sm">{{ label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+  <div class="px-space-md">
+    <div class="p-space-md rounded-xl bg-surface/5 flex flex-col gap-space-xs">
+      <span class="text-[11px] text-primary-fixed-dim">Kütüphane Sistemi</span>
+      <span class="text-xs text-on-primary-container">Flask + SQLite</span>
+      <a href="{{ url_for('cikis') }}" class="mt-2 text-xs text-secondary-fixed hover:underline">Çıkış yap</a>
+    </div>
+  </div>
+</aside>
+
+<div class="pl-[240px]">
+  <header class="fixed top-0 left-[240px] right-0 h-16 bg-surface shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-margin">
+    <div class="flex items-center gap-space-xs text-on-surface-variant text-xs">
+      <span class="material-symbols-outlined text-base">account_balance</span>
+      <span>Merkez Kütüphane</span>
+      <span class="material-symbols-outlined text-xs">chevron_right</span>
+      <span class="text-on-surface font-semibold">{% block crumb %}Yönetim Konsolu{% endblock %}</span>
+    </div>
+    <div class="flex items-center gap-space-lg">
+      <form action="{{ url_for('ara') }}" method="get" class="relative hidden md:flex items-center">
+        <span class="material-symbols-outlined absolute left-3 text-outline text-base">search</span>
+        <input name="q" class="w-72 h-10 pl-9 pr-3 rounded-lg bg-surface-container-low text-sm placeholder:text-outline focus:outline-none"
+               placeholder="Üye no, ISBN veya kitap ara..." value="{{ request.args.get('q', '') if request.endpoint == 'ara' else '' }}"/>
+      </form>
+      <div class="flex flex-col text-right">
+        <span class="text-sm font-semibold text-on-surface leading-tight">{{ personel.tam_ad() }}</span>
+        <span class="px-space-xs py-[1px] bg-secondary-fixed text-on-secondary-fixed text-[11px] rounded self-end">{{ personel.rol }}</span>
+      </div>
+    </div>
+  </header>
+  <main class="relative pt-16 bg-surface-container-low min-h-screen">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="px-margin pt-space-md space-y-2">
+        {% for category, message in messages %}
+        <div class="rounded-lg px-space-md py-space-sm text-sm
+          {% if category == 'error' %}bg-error-container text-on-error-container
+          {% else %}bg-tertiary-fixed text-on-tertiary-fixed-variant{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block auth %}{% endblock %}
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

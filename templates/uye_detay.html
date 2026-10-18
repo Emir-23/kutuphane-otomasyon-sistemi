@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ detay.uye.tam_ad() }} — Üye Detay{% endblock %}
+{% block crumb %}Üye Detay{% endblock %}
+{% block content %}
+{% set u = detay.uye %}
+<div class="px-margin py-space-lg flex flex-col gap-space-lg max-w-5xl">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <a href="{{ url_for('uyeler') }}" class="text-sm text-secondary hover:underline">← Üyeler</a>
+      <h1 class="font-display text-3xl mt-2">{{ u.tam_ad() }}</h1>
+      <p class="text-sm text-on-surface-variant">
+        Üye No <strong>{{ u.uye_no }}</strong> · {{ u.tip }} ·
+        {% if u.aktif %}<span class="text-on-tertiary-fixed-variant font-semibold">Aktif</span>{% else %}<span class="text-outline">Pasif</span>{% endif %}
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href="{{ url_for('uyeler', duzenle=u.uye_id) }}" class="h-10 px-4 rounded-lg bg-surface-container text-sm font-semibold flex items-center">Düzenle</a>
+      <form method="post" action="{{ url_for('uyeler') }}" class="inline" onsubmit="return confirm('Şifre uye123 olarak sıfırlansın mı?');">
+        <input type="hidden" name="eylem" value="sifre_sifirla"/>
+        <input type="hidden" name="uye_id" value="{{ u.uye_id }}"/>
+        <input type="hidden" name="yeni_sifre" value="uye123"/>
+        <input type="hidden" name="next" value="{{ url_for('uye_detay', uye_id=u.uye_id) }}"/>
+        <button class="h-10 px-4 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-sm font-semibold">Şifre sıfırla</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+      <div class="text-[11px] uppercase text-on-surface-variant">E-posta</div>
+      <div class="text-sm font-semibold mt-1 break-all">{{ u.eposta }}</div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+      <div class="text-[11px] uppercase text-on-surface-variant">Telefon</div>
+      <div class="text-sm font-semibold mt-1">{{ u.telefon }}</div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+      <div class="text-[11px] uppercase text-on-surface-variant">Açık / Limit</div>
+      <div class="text-sm font-semibold mt-1">{{ detay.acik_sayisi }} / {{ detay.limit }}</div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+      <div class="text-[11px] uppercase text-error">Bekleyen ceza</div>
+      <div class="text-sm font-semibold mt-1 {% if detay.bekleyen_ceza %}text-error{% endif %}">{{ '%.0f'|format(detay.bekleyen_ceza) }} TL</div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="px-4 py-3 border-b border-surface-container font-display text-xl">Ödünç geçmişi</div>
+    {% if detay.oduncler %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="bg-surface-container text-[11px] uppercase text-on-surface-variant">
+            <th class="py-2 px-4">Kitap</th>
+            <th class="py-2 px-4">Alış</th>
+            <th class="py-2 px-4">İade planı</th>
+            <th class="py-2 px-4">Durum</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container">
+          {% for o in detay.oduncler %}
+          <tr class="{% if o.gecikti_mi() %}bg-error-container/30{% endif %}">
+            <td class="py-3 px-4 font-semibold">{{ o.kitap_ad }}</td>
+            <td class="py-3 px-4">{{ o.alis_tarihi.strftime('%d.%m.%Y') }}</td>
+            <td class="py-3 px-4">{{ o.planlanan_iade.strftime('%d.%m.%Y') }}</td>
+            <td class="py-3 px-4">{{ o.durum }}{% if o.gecikti_mi() %} · {{ o.gecikme_gunu() }}g{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="p-6 text-sm text-on-surface-variant">Ödünç kaydı yok.</p>
+    {% endif %}
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    <div class="px-4 py-3 border-b border-surface-container font-display text-xl">Cezalar</div>
+    {% if detay.cezalar %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="bg-surface-container text-[11px] uppercase text-on-surface-variant">
+            <th class="py-2 px-4">Kitap</th>
+            <th class="py-2 px-4">Gün</th>
+            <th class="py-2 px-4">Tutar</th>
+            <th class="py-2 px-4">Durum</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container">
+          {% for c in detay.cezalar %}
+          <tr>
+            <td class="py-3 px-4">{{ c.kitap_ad }}</td>
+            <td class="py-3 px-4">{{ c.gun_sayisi }}</td>
+            <td class="py-3 px-4 font-semibold {% if not c.odendi %}text-error{% endif %}">{{ c.toplam_tutar }} TL</td>
+            <td class="py-3 px-4">{% if c.odendi %}Ödendi{% else %}Ödenmedi{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="p-6 text-sm text-on-surface-variant">Ceza kaydı yok.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

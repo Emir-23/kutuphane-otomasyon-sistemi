@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Görevli Girişi — Atlas Kütüphane{% endblock %}
+{% block auth %}
+<main class="min-h-screen w-full flex items-center justify-center p-gutter bg-surface-container-low">
+  <div class="relative w-full max-w-lg z-10">
+    <div class="flex items-center justify-between pb-3 px-1">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary"></span>
+        <span class="text-[11px] uppercase tracking-widest text-on-surface-variant">Kütüphane İntranet Portalı</span>
+      </div>
+      <span class="text-[11px] text-secondary font-semibold">ARŞİV-OTOMASYON</span>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-lg shadow-xl shadow-primary/5 p-8 sm:p-12 relative">
+      <div class="h-0.5 w-full bg-surface-container-high rounded-full overflow-hidden mb-8">
+        <div class="h-full w-24 bg-secondary"></div>
+      </div>
+
+      <div class="flex flex-col items-center text-center">
+        <div class="mb-6 w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center text-secondary-fixed">
+          <span class="material-symbols-outlined text-2xl">menu_book</span>
+        </div>
+        <span class="text-[11px] uppercase tracking-widest px-3 py-1 rounded-sm bg-surface-container text-on-surface-variant mb-3">
+          Güvenli Personel Girişi
+        </span>
+        <h1 class="font-display text-2xl text-on-surface tracking-tight mb-2">Görevli girişi</h1>
+        <p class="text-sm text-on-surface-variant max-w-xs leading-relaxed">
+          Atlas Kütüphane Yönetim ve Arşiv Otomasyon Sistemi
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="mt-6 space-y-2">
+          {% for category, message in messages %}
+          <div class="rounded-lg px-3 py-2 text-sm text-center
+            {% if category == 'error' %}bg-error-container text-on-error-container{% else %}bg-surface-container{% endif %}">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="my-7 flex items-center gap-3">
+        <div class="h-px flex-1 bg-surface-container-high"></div>
+        <span class="text-[11px] uppercase text-outline tracking-wider">Kimlik Doğrulama</span>
+        <div class="h-px flex-1 bg-surface-container-high"></div>
+      </div>
+
+      <form class="space-y-5" method="post">
+        <div class="space-y-1.5">
+          <label class="text-sm font-semibold text-on-surface" for="kullanici_adi">Kullanıcı adı</label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-outline text-[18px]">badge</span>
+            <input class="w-full h-11 pl-11 pr-4 bg-surface-container-low text-on-surface text-sm rounded-lg focus:outline-none"
+                   id="kullanici_adi" name="kullanici_adi" placeholder="mehmet" required type="text" value="mehmet"/>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm font-semibold text-on-surface" for="sifre">Şifre</label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-outline text-[18px]">lock</span>
+            <input class="w-full h-11 pl-11 pr-4 bg-surface-container-low text-on-surface text-sm rounded-lg focus:outline-none"
+                   id="sifre" name="sifre" placeholder="••••" required type="password" value="1234"/>
+          </div>
+        </div>
+        <button class="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary-container text-inverse-on-surface text-sm font-semibold hover:opacity-95"
+                type="submit">
+          <span class="material-symbols-outlined text-[18px] text-secondary-fixed">login</span>
+          Giriş yap
+        </button>
+      </form>
+
+      <div class="mt-8 pt-6 bg-surface-container-low/60 -mx-8 sm:-mx-12 -mb-8 sm:-mb-12 px-8 sm:px-12 pb-6 rounded-b-lg text-center">
+        <p class="text-sm text-on-surface-variant font-medium">Yalnızca kütüphane personeli yetkili erişimidir.</p>
+        <p class="mt-2 text-[11px] text-outline">Demo: kullanıcı <strong>mehmet</strong> / şifre <strong>1234</strong></p>
+        <p class="mt-3 text-sm"><a href="{{ url_for('uye_giris') }}" class="text-secondary font-semibold hover:underline">Üye misiniz? Üye portalına geç →</a></p>
+        <p class="mt-1 text-xs"><a href="{{ url_for('index') }}" class="text-outline hover:underline">Ana sayfa</a></p>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

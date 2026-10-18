@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Panel — Atlas Kütüphane{% endblock %}
+{% block crumb %}Panel{% endblock %}
+{% block content %}
+<div class="flex flex-col w-full p-margin gap-space-lg">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md pb-space-sm border-b border-surface-variant">
+    <div class="flex flex-col gap-space-xs">
+      <div class="flex items-center gap-space-xs text-secondary">
+        <span class="material-symbols-outlined text-base">auto_stories</span>
+        <span class="text-[11px] uppercase tracking-wider">Konsol Özeti</span>
+      </div>
+      <h1 class="font-display text-2xl text-on-surface">Genel Bakış ve Operasyon Paneli</h1>
+      <p class="text-sm text-on-surface-variant">Bugünün kütüphane dolaşım durumu ve bekleyen görevler</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="{{ url_for('raporlar') }}" class="bg-surface-container text-on-surface px-space-md py-space-sm rounded-lg text-sm font-semibold flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-base">analytics</span>
+        Raporlar
+      </a>
+      <a href="{{ url_for('odunc') }}" class="bg-primary text-surface px-space-md py-space-sm rounded-lg text-sm font-semibold flex items-center gap-space-xs">
+        <span class="material-symbols-outlined text-base">add_circle</span>
+        Hızlı Ödünç Ver
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm border-t-2 border-primary">
+      <span class="text-[11px] uppercase tracking-wider text-on-surface-variant">Katalog Envanteri</span>
+      <div class="font-display text-3xl text-on-surface mt-2">{{ stats.kitap }}</div>
+      <p class="text-xs text-on-surface-variant mt-1">Toplam kayıtlı eser</p>
+    </div>
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm border-t-2 border-secondary">
+      <span class="text-[11px] uppercase tracking-wider text-on-surface-variant">Aktif Üye</span>
+      <div class="font-display text-3xl text-on-surface mt-2">{{ stats.uye }}</div>
+      <p class="text-xs text-on-surface-variant mt-1">Kayıtlı aktif üye</p>
+    </div>
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm border-t-2 border-outline">
+      <span class="text-[11px] uppercase tracking-wider text-on-surface-variant">Açık Ödünç</span>
+      <div class="font-display text-3xl text-on-surface mt-2">{{ stats.acik }}</div>
+      <p class="text-xs text-on-surface-variant mt-1">Dolaşımdaki materyal</p>
+    </div>
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm border-t-2 border-error">
+      <span class="text-[11px] uppercase tracking-wider text-error">Geciken</span>
+      <div class="font-display text-3xl text-error mt-2">{{ stats.geciken }}</div>
+      <p class="text-xs text-on-surface-variant mt-1">Tahakkuk: {{ '%.0f'|format(stats.bekleyen_ceza) }} TL</p>
+    </div>
+  </div>
+
+  {% if stats.acil_gecikenler %}
+  <div class="bg-error-container/30 border border-error/20 rounded-xl p-space-lg">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <div class="flex items-center gap-2 text-error">
+        <span class="material-symbols-outlined">warning</span>
+        <h2 class="font-display text-xl text-error">Acil: Gecikenler</h2>
+      </div>
+      <a href="{{ url_for('odunc', filtre='geciken') }}" class="text-sm text-error font-semibold hover:underline">Tümünü gör →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for r in stats.acil_gecikenler %}
+      <div class="bg-surface-container-lowest rounded-lg p-3 text-sm">
+        <div class="font-semibold">{{ r.uye_ad }} <span class="text-xs text-on-surface-variant">#{{ r.uye_no }}</span></div>
+        <div class="text-on-surface-variant mt-0.5">{{ r.kitap_ad }}</div>
+        <div class="text-error text-xs font-semibold mt-1">{{ r.gecikme_gun }} gün gecikme · iade {{ r.planlanan_iade }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+    <div class="lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+      <h2 class="font-display text-xl text-on-surface mb-1">Bugün / Yakın İadeler</h2>
+      <p class="text-xs text-on-surface-variant mb-4">Teslimi yaklaşan veya bugün beklenen kayıtlar</p>
+      {% if stats.bugun_iade %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="bg-surface-container text-on-surface-variant text-[11px] uppercase tracking-wider">
+              <th class="py-2 px-3">Üye</th>
+              <th class="py-2 px-3">Kitap</th>
+              <th class="py-2 px-3">Son Gün</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-container">
+            {% for r in stats.bugun_iade %}
+            <tr>
+              <td class="py-3 px-3">
+                <div class="font-semibold">{{ r.uye_ad }}</div>
+                <div class="text-xs text-on-surface-variant">#{{ r.uye_no }}</div>
+              </td>
+              <td class="py-3 px-3 font-medium">{{ r.kitap_ad }}</td>
+              <td class="py-3 px-3">
+                {% if r.planlanan_iade == bugun.isoformat() %}
+                <span class="px-2 py-0.5 bg-secondary-fixed text-on-secondary-fixed text-[11px] rounded">Bugün</span>
+                {% else %}
+                {{ r.planlanan_iade }}
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        {% with icon='event_available', title='Yakın iade yok', message='Önümüzdeki 24 saat içinde beklenen teslim bulunmuyor.' %}
+          {% include '_empty.html' %}
+        {% endwith %}
+      {% endif %}
+    </div>
+
+    <div class="lg:col-span-4 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-display text-xl text-on-surface">Ödenmemiş Cezalar</h2>
+        <span class="px-2 py-0.5 bg-error-container text-on-error-container text-[11px] rounded font-semibold">
+          {{ stats.odenmemis_cezalar|length }} Bekleyen
+        </span>
+      </div>
+      {% if stats.odenmemis_cezalar %}
+      <div class="flex flex-col divide-y divide-surface-container">
+        {% for c in stats.odenmemis_cezalar %}
+        <div class="py-3 flex flex-col gap-1">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-sm">{{ c.uye_ad }}</span>
+            <span class="font-semibold text-error">{{ c.toplam_tutar }} TL</span>
+          </div>
+          <div class="text-xs text-on-surface-variant flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm text-error">schedule</span>
+            {{ c.gun_sayisi }} gün • {{ c.kitap_ad }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{{ url_for('cezalar') }}" class="mt-4 inline-flex text-sm text-secondary hover:underline">Cezalar sayfasına git →</a>
+      {% else %}
+        {% with icon='payments', title='Ödenmemiş ceza yok', message='Tüm cezalar tahsil edilmiş görünüyor.' %}
+          {% include '_empty.html' %}
+        {% endwith %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

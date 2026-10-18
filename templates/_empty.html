@@ -1,0 +1,10 @@
+<div class="py-12 px-6 text-center">
+  <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-surface-container flex items-center justify-center text-outline">
+    <span class="material-symbols-outlined text-2xl">{{ icon|default('inbox') }}</span>
+  </div>
+  <p class="font-semibold text-on-surface">{{ title|default('Kayıt yok') }}</p>
+  <p class="text-sm text-on-surface-variant mt-1 max-w-md mx-auto">{{ message|default('Bu listede henüz gösterilecek kayıt bulunmuyor.') }}</p>
+  {% if action_url %}
+  <a href="{{ action_url }}" class="inline-flex mt-4 px-4 py-2 rounded-lg bg-primary-container text-surface text-sm font-semibold">{{ action_label|default('Devam et') }}</a>
+  {% endif %}
+</div>

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Arama — Atlas Kütüphane{% endblock %}
+{% block crumb %}Arama{% endblock %}
+{% block content %}
+<div class="px-margin py-space-lg flex flex-col gap-space-lg max-w-5xl">
+  <div>
+    <h1 class="font-display text-3xl">Arama</h1>
+    <p class="text-sm text-on-surface-variant mt-1">Üye, kitap ve açık ödünç kayıtlarında ara</p>
+  </div>
+
+  <form method="get" class="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex gap-3">
+    <input name="q" value="{{ q }}" class="flex-1 h-10 px-3 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="Üye no, ad, ISBN, kitap adı..."/>
+    <button class="h-10 px-5 rounded-lg bg-primary-container text-surface text-sm font-semibold">Ara</button>
+  </form>
+
+  {% if not q %}
+  <p class="text-sm text-on-surface-variant">Aramak için bir ifade yazın.</p>
+  {% else %}
+
+  <section class="bg-surface-container-lowest rounded-xl shadow-sm p-5">
+    <h2 class="font-display text-xl mb-3">Üyeler ({{ sonuc.uyeler|length }})</h2>
+    {% if sonuc.uyeler %}
+    <ul class="space-y-2 text-sm">
+      {% for u in sonuc.uyeler %}
+      <li class="flex justify-between border-b border-surface-container pb-2">
+        <span><strong>{{ u.uye_no }}</strong> — {{ u.tam_ad() }} <span class="text-on-surface-variant">({{ u.tip }})</span></span>
+        <a href="{{ url_for('uye_detay', uye_id=u.uye_id) }}" class="text-secondary font-semibold hover:underline">Detay</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-on-surface-variant">Üye bulunamadı.</p>
+    {% endif %}
+  </section>
+
+  <section class="bg-surface-container-lowest rounded-xl shadow-sm p-5">
+    <h2 class="font-display text-xl mb-3">Kitaplar ({{ sonuc.kitaplar|length }})</h2>
+    {% if sonuc.kitaplar %}
+    <ul class="space-y-2 text-sm">
+      {% for k in sonuc.kitaplar %}
+      <li class="flex justify-between border-b border-surface-container pb-2">
+        <span><strong>{{ k.ad }}</strong> — {{ k.yazar }} <span class="text-on-surface-variant">{{ k.isbn }}</span></span>
+        <a href="{{ url_for('kitaplar', q=k.isbn) }}" class="text-secondary font-semibold hover:underline">Kataloğa git</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-on-surface-variant">Kitap bulunamadı.</p>
+    {% endif %}
+  </section>
+
+  <section class="bg-surface-container-lowest rounded-xl shadow-sm p-5">
+    <h2 class="font-display text-xl mb-3">Açık ödünçler ({{ sonuc.oduncler|length }})</h2>
+    {% if sonuc.oduncler %}
+    <ul class="space-y-2 text-sm">
+      {% for o in sonuc.oduncler %}
+      <li class="border-b border-surface-container pb-2">
+        <strong>{{ o.uye_ad }}</strong> → {{ o.kitap_ad }}
+        <span class="text-on-surface-variant">· iade {{ o.planlanan_iade.strftime('%d.%m.%Y') }}</span>
+        {% if o.gecikti_mi() %}<span class="text-error font-semibold ml-1">Gecikti</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-on-surface-variant">Açık ödünç bulunamadı.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

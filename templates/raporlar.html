@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Raporlar — Atlas Kütüphane{% endblock %}
+{% block crumb %}Raporlar{% endblock %}
+{% block content %}
+<div class="px-margin py-space-xl max-w-7xl mx-auto w-full flex flex-col gap-space-xl">
+  <div>
+    <div class="flex items-center gap-space-sm text-secondary mb-1">
+      <span class="material-symbols-outlined text-base">analytics</span>
+      <span class="text-[11px] uppercase tracking-wider">İstatistik &amp; Özet</span>
+    </div>
+    <h1 class="font-display text-3xl text-on-surface">Raporlar</h1>
+    <p class="text-sm text-on-surface-variant">Ödünç yoğunluğu, ceza toplamları ve kategori dağılımı</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+    <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+      <span class="text-[11px] uppercase text-on-surface-variant">Açık ödünç</span>
+      <div class="font-display text-3xl mt-2">{{ rapor.odunc_durumlar.acik or 0 }}</div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+      <span class="text-[11px] uppercase text-error">Geciken</span>
+      <div class="font-display text-3xl mt-2 text-error">{{ rapor.odunc_durumlar.gecikti or 0 }}</div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+      <span class="text-[11px] uppercase text-on-surface-variant">Toplam ceza</span>
+      <div class="font-display text-3xl mt-2">{{ '%.0f'|format(rapor.ceza_ozet.toplam) }} TL</div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+      <span class="text-[11px] uppercase text-error">Bekleyen ceza</span>
+      <div class="font-display text-3xl mt-2 text-error">{{ '%.0f'|format(rapor.ceza_ozet.bekleyen) }} TL</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+      <h2 class="font-display text-xl mb-1">En çok ödünç alınan kitaplar</h2>
+      <p class="text-xs text-on-surface-variant mb-4">Tüm zamanlar · ilk 10</p>
+      {% if rapor.populer_kitaplar and rapor.populer_kitaplar[0].odunc_sayisi > 0 %}
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-[11px] uppercase text-on-surface-variant bg-surface-container">
+            <th class="py-2 px-3 text-left">Kitap</th>
+            <th class="py-2 px-3 text-right">Ödünç</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container">
+          {% for k in rapor.populer_kitaplar %}
+          {% if k.odunc_sayisi > 0 %}
+          <tr>
+            <td class="py-3 px-3">
+              <div class="font-semibold">{{ k.ad }}</div>
+              <div class="text-[11px] text-on-surface-variant">{{ k.yazar }}</div>
+            </td>
+            <td class="py-3 px-3 text-right font-semibold">{{ k.odunc_sayisi }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        {% with icon='bar_chart', title='Henüz ödünç verisi yok', message='Ödünç işlemleri başladıkça bu liste dolacak.' %}
+          {% include '_empty.html' %}
+        {% endwith %}
+      {% endif %}
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+      <h2 class="font-display text-xl mb-1">En aktif üyeler</h2>
+      <p class="text-xs text-on-surface-variant mb-4">Ödünç sayısına göre</p>
+      {% if rapor.aktif_uyeler and rapor.aktif_uyeler[0].odunc_sayisi > 0 %}
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-[11px] uppercase text-on-surface-variant bg-surface-container">
+            <th class="py-2 px-3 text-left">Üye</th>
+            <th class="py-2 px-3 text-right">Ödünç</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container">
+          {% for u in rapor.aktif_uyeler %}
+          {% if u.odunc_sayisi > 0 %}
+          <tr>
+            <td class="py-3 px-3">
+              <div class="font-semibold">{{ u.tam_ad }}</div>
+              <div class="text-[11px] text-on-surface-variant">No: {{ u.uye_no }}</div>
+            </td>
+            <td class="py-3 px-3 text-right font-semibold">{{ u.odunc_sayisi }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        {% with icon='group', title='Aktiflik verisi yok', message='Üyeler ödünç aldıkça sıralama oluşur.' %}
+          {% include '_empty.html' %}
+        {% endwith %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+      <h2 class="font-display text-xl mb-4">Kategori dağılımı</h2>
+      <div class="space-y-3">
+        {% for c in rapor.kategori_dagilim %}
+        <div class="flex items-center justify-between text-sm">
+          <span>{{ c.kategori }}</span>
+          <span class="font-semibold px-2 py-0.5 rounded bg-surface-container">{{ c.adet }} eser</span>
+        </div>
+        {% else %}
+        <p class="text-sm text-on-surface-variant">Kategori yok.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg">
+      <h2 class="font-display text-xl mb-4">Ceza özeti</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between"><span>Kayıt sayısı</span><strong>{{ rapor.ceza_ozet.kayit }}</strong></div>
+        <div class="flex justify-between"><span>Toplam tahakkuk</span><strong>{{ '%.2f'|format(rapor.ceza_ozet.toplam) }} TL</strong></div>
+        <div class="flex justify-between"><span>Tahsil edilen</span><strong>{{ '%.2f'|format(rapor.ceza_ozet.odenen) }} TL</strong></div>
+        <div class="flex justify-between text-error"><span>Bekleyen</span><strong>{{ '%.2f'|format(rapor.ceza_ozet.bekleyen) }} TL</strong></div>
+        <div class="flex justify-between"><span>İade edilmiş ödünç</span><strong>{{ rapor.odunc_durumlar.iade or 0 }}</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

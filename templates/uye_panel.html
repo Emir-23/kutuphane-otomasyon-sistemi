@@ -1,0 +1,290 @@
+{% extends "uye_base.html" %}
+{% block title %}Özet — Üye Portalı{% endblock %}
+{% block content %}
+{% set limit = uye.max_odunc_hakki() %}
+{% set kota_pct = ((ozet.acik_odunc / limit * 100)|int) if limit else 0 %}
+
+<div class="flex flex-col w-full gap-space-xl">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-lg bg-surface-container p-space-lg rounded-xl shadow-sm relative overflow-hidden">
+    <div class="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none"></div>
+    <div class="flex flex-col gap-space-xs max-w-2xl relative z-10">
+      <div class="flex items-center gap-space-sm text-secondary flex-wrap">
+        <span class="text-[11px] uppercase tracking-wider font-semibold">Üye Kontrol Paneli</span>
+        <span class="text-outline-variant">/</span>
+        <span class="text-[11px] text-on-surface-variant">Kütüphane Kart No: {{ uye.uye_no }}</span>
+      </div>
+      <h1 class="font-display text-[32px] md:text-[40px] text-primary tracking-tight leading-tight">Merhaba, {{ uye.ad }}</h1>
+      <p class="text-[15px] text-on-surface-variant leading-relaxed">
+        Atlas Üniversitesi Merkez Kütüphanesi üye kontrol paneliniz. Aktif dolaşımdaki yayınlarınızı, iade vadelerinizi ve ceza durumunuzu buradan yönetebilirsiniz.
+      </p>
+    </div>
+    <div class="flex flex-wrap sm:flex-nowrap items-center gap-space-sm relative z-10 shrink-0">
+      <a href="{{ url_for('uye_katalog') }}" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-surface px-space-md py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">manage_search</span>
+        <span>Kataloğa Göz At</span>
+      </a>
+      <a href="{{ url_for('uye_oduncler') }}" class="inline-flex items-center gap-2 bg-surface-container-lowest hover:bg-surface-bright text-on-surface px-space-md py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm">
+        <span class="material-symbols-outlined text-[18px] text-secondary">swap_horiz</span>
+        <span>Ödünçlerim</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="flex items-start justify-between">
+        <div class="flex flex-col gap-1">
+          <span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Açık Ödünç</span>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="font-display text-[32px] text-primary tracking-tight font-bold">{{ ozet.acik_odunc }}</span>
+            <span class="text-base text-outline">/ {{ limit }} Eser</span>
+          </div>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-[24px]">menu_book</span>
+        </div>
+      </div>
+      <div class="mt-space-md flex flex-col gap-2">
+        <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+          <div class="bg-primary h-full rounded-full transition-all duration-700" style="width: {{ kota_pct }}%;"></div>
+        </div>
+        <div class="flex items-center justify-between text-on-surface-variant text-[11px]">
+          <span>{{ uye.tip }} dolaşım limiti</span>
+          <span class="font-semibold text-primary">Kalan Hak: {{ limit - ozet.acik_odunc }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="flex items-start justify-between">
+        <div class="flex flex-col gap-1">
+          <span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Geciken Kitap</span>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="font-display text-[32px] tracking-tight font-bold {% if ozet.geciken %}text-error{% else %}text-primary{% endif %}">{{ ozet.geciken }}</span>
+            <span class="text-xs text-outline">{% if ozet.geciken %}Gecikme Var{% else %}Gecikme Yok{% endif %}</span>
+          </div>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center {% if ozet.geciken %}text-error{% else %}text-on-tertiary-fixed-variant{% endif %}">
+          <span class="material-symbols-outlined text-[24px]">schedule</span>
+        </div>
+      </div>
+      <div class="mt-space-md pt-2">
+        {% if ozet.geciken %}
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-semibold">
+          <span class="material-symbols-outlined text-[15px]">warning</span>
+          <span>{{ ozet.geciken }} gecikmiş kitabınız var</span>
+        </div>
+        {% else %}
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold">
+          <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+          <span>Gecikmiş kitabınız bulunmuyor</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="flex items-start justify-between">
+        <div class="flex flex-col gap-1">
+          <span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Bekleyen Ceza</span>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="font-display text-[32px] tracking-tight font-bold {% if ozet.bekleyen_ceza %}text-error{% else %}text-primary{% endif %}">{{ '%.2f'|format(ozet.bekleyen_ceza) }} ₺</span>
+          </div>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+          <span class="material-symbols-outlined text-[24px]">payments</span>
+        </div>
+      </div>
+      <div class="mt-space-md pt-2">
+        {% if ozet.bekleyen_ceza %}
+        <a href="{{ url_for('uye_cezalar') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-semibold hover:opacity-90">
+          <span class="material-symbols-outlined text-[15px]">receipt_long</span>
+          <span>Cezaları görüntüle</span>
+        </a>
+        {% else %}
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold">
+          <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+          <span>Tahakkuk eden borcunuz yoktur</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <div class="lg:col-span-8 flex flex-col gap-space-md">
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="p-space-lg bg-surface-container-high/60 flex items-center justify-between gap-3 flex-wrap">
+          <div class="flex items-center gap-space-sm">
+            <h2 class="font-display text-2xl text-primary">Ödünçlerim</h2>
+            <span class="bg-secondary-fixed text-on-secondary-fixed text-[11px] px-2.5 py-0.5 rounded-full font-semibold">
+              {{ ozet.acik_odunc }} Aktif Kitap
+            </span>
+          </div>
+          <a href="{{ url_for('uye_oduncler') }}" class="inline-flex items-center gap-1 text-secondary hover:text-primary text-sm font-semibold transition-colors group">
+            <span>Tümünü Gör</span>
+            <span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="p-space-lg flex flex-col gap-space-lg">
+          {% if ozet.oduncler %}
+            {% for o in ozet.oduncler %}
+            {% set kalan = (o.planlanan_iade - bugun).days %}
+            <div class="bg-surface-container-low rounded-lg p-space-md hover:bg-surface-container transition-colors relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md {% if o.gecikti_mi() %}ring-1 ring-error/30{% endif %}">
+              <div class="flex items-start gap-space-md">
+                <div class="w-16 h-20 rounded {% if loop.index is odd %}bg-primary-container text-surface{% else %}bg-secondary-container text-on-secondary-container{% endif %} flex flex-col items-center justify-center shrink-0 shadow-sm relative overflow-hidden">
+                  <span class="material-symbols-outlined text-[28px] opacity-80">{% if loop.index is odd %}book_2{% else %}history_edu{% endif %}</span>
+                  <span class="text-[10px] tracking-widest uppercase opacity-60 mt-1">{{ (o.kategori_ad or 'Eser')[:8] }}</span>
+                  <div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></div>
+                </div>
+                <div class="flex flex-col gap-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-display text-xl text-primary font-semibold">{{ o.kitap_ad }}</h3>
+                    {% if o.kitap_yazar %}
+                    <span class="text-on-surface-variant text-xs">· {{ o.kitap_yazar }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="flex flex-wrap items-center gap-space-sm text-[11px] text-on-surface-variant mt-0.5">
+                    <span class="px-2 py-0.5 rounded bg-surface-container-highest text-primary font-mono font-semibold">ISBN: {{ o.kitap_isbn or '—' }}</span>
+                    {% if o.raf_konumu %}
+                    <span class="text-outline">·</span>
+                    <span class="text-secondary font-medium">Raf: {{ o.raf_konumu }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="flex flex-wrap items-center gap-y-1 gap-x-space-md text-xs text-on-surface-variant mt-1.5">
+                    <span>Alış: <strong class="text-on-surface">{{ o.alis_tarihi.strftime('%d.%m.%Y') }}</strong></span>
+                    <span class="text-outline-variant">|</span>
+                    <span>Son İade: <strong class="text-on-surface {% if o.gecikti_mi() %}text-error{% endif %}">{{ o.planlanan_iade.strftime('%d.%m.%Y') }}</strong></span>
+                    <span class="text-outline-variant">|</span>
+                    {% if o.gecikti_mi() %}
+                    <span class="text-error font-semibold flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[16px]">warning</span>
+                      {{ o.gecikme_gunu() }} gün gecikti
+                    </span>
+                    {% else %}
+                    <span class="text-primary font-semibold flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">timelapse</span>
+                      Kalan Süre: {{ kalan }} Gün
+                    </span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto gap-space-sm shrink-0">
+                {% if o.gecikti_mi() %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-semibold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                  Gecikti
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed"></span>
+                  Açık / Zamanında
+                </span>
+                {% endif %}
+                <span class="text-[11px] text-on-surface-variant text-right hidden sm:block max-w-[160px] leading-tight">
+                  Süre uzatma için bankoya başvurabilirsiniz
+                </span>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-8">
+              <span class="material-symbols-outlined text-outline text-[40px]">menu_book</span>
+              <p class="text-sm text-on-surface-variant mt-2">Açık ödüncünüz yok. Katalogdan kitaplara bakabilirsiniz.</p>
+              <a href="{{ url_for('uye_katalog') }}" class="inline-flex mt-4 px-4 py-2 rounded-lg bg-primary-container text-surface text-sm font-semibold">Kataloğa git</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="p-space-md bg-surface-container flex items-center justify-between text-xs text-on-surface-variant gap-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary text-[18px]">verified_user</span>
+            <span>Ödünç süresi bitiminde eserleri kütüphane bankosundan teslim edebilirsiniz.</span>
+          </div>
+          <span class="hidden md:inline font-mono text-[11px] text-outline">Atlas · Üye Portalı</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-4 flex flex-col gap-space-md">
+      <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-primary">Ödenmemiş Cezalar</h2>
+          <span class="material-symbols-outlined {% if ozet.bekleyen_ceza %}text-error{% else %}text-on-tertiary-fixed-variant{% endif %} text-[20px]">shield</span>
+        </div>
+
+        {% if ozet.cezalar %}
+        <div class="flex flex-col gap-3">
+          {% for c in ozet.cezalar %}
+          <div class="flex justify-between gap-3 text-sm p-space-sm rounded-lg bg-surface-container-low">
+            <div>
+              <div class="font-semibold text-primary">{{ c.kitap_ad }}</div>
+              <div class="text-[11px] text-on-surface-variant">{{ c.gun_sayisi }} gün gecikme</div>
+            </div>
+            <span class="font-semibold text-error shrink-0">{{ c.toplam_tutar }} TL</span>
+          </div>
+          {% endfor %}
+          <a href="{{ url_for('uye_cezalar') }}" class="text-sm text-secondary font-semibold hover:underline self-end">Tüm cezalar →</a>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center text-center py-space-md px-2 bg-surface-container-low rounded-lg">
+          <div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed mb-space-sm">
+            <span class="material-symbols-outlined text-[26px]">task_alt</span>
+          </div>
+          <h3 class="text-sm font-semibold text-primary">Hesabınız Temiz</h3>
+          <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
+            Harika! Ödenmemiş herhangi bir gecikme cezanız bulunmamaktadır.
+          </p>
+        </div>
+        {% endif %}
+
+        <div class="p-space-sm rounded bg-surface-container flex items-start gap-2 text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">info</span>
+          <span class="text-[12px] leading-tight">
+            Günlük ceza bedeli: <strong class="text-on-surface">{{ kutuphane.gunluk_ceza }} TL / gün</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-primary">Kütüphane Duyuruları</h2>
+          <span class="text-[11px] text-secondary uppercase font-semibold">Güncel</span>
+        </div>
+        <div class="flex flex-col gap-space-md">
+          <div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container-low">
+            <div class="w-8 h-8 rounded bg-primary-container text-surface flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[16px]">access_time</span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-primary font-semibold">Ödünç süresi {{ kutuphane.odunc_suresi_gun }} gündür</span>
+              <p class="text-xs text-on-surface-variant">
+                Standart süre uzatma bir kez, +{{ kutuphane.uzatma_gun }} gün olarak bankodan yapılır.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container-low">
+            <div class="w-8 h-8 rounded bg-secondary text-surface flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[16px]">auto_stories</span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-primary font-semibold">Katalogdan raf konumunu not alın</span>
+              <p class="text-xs text-on-surface-variant">
+                Ödünç ve iade işlemleri kütüphane görevlisi tarafından gerçekleştirilir.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="pt-2">
+          <a href="{{ url_for('uye_profil') }}" class="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface text-[11px] font-semibold transition-colors text-center">
+            <span class="material-symbols-outlined text-[16px]">contact_support</span>
+            <span>Profil ve İletişim Bilgileri</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

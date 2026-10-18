@@ -1,0 +1,29 @@
+{% extends "uye_base.html" %}
+{% block title %}Üye Girişi — Atlas Kütüphane{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-sm p-8">
+    <div class="text-center mb-6">
+      <div class="text-[11px] uppercase tracking-widest text-secondary font-semibold mb-2">Üye Portalı</div>
+      <h1 class="font-display text-2xl">Üye girişi</h1>
+      <p class="text-sm text-on-surface-variant mt-1">Üye no veya e-posta ile giriş yapın</p>
+    </div>
+    <form method="post" class="space-y-4">
+      <div>
+        <label class="text-sm font-semibold">Üye no / E-posta</label>
+        <input name="kimlik" required class="w-full h-11 mt-1 px-3 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="1001 veya ayse@mail.com" value="1001"/>
+      </div>
+      <div>
+        <label class="text-sm font-semibold">Şifre</label>
+        <input name="sifre" type="password" required class="w-full h-11 mt-1 px-3 rounded-lg bg-surface-container-low text-sm focus:outline-none" value="uye123"/>
+      </div>
+      <button class="w-full h-11 rounded-lg bg-primary-container text-surface font-semibold text-sm">Giriş yap</button>
+    </form>
+    <p class="text-xs text-outline text-center mt-4">Demo: üye no <strong>1001</strong> · şifre <strong>uye123</strong></p>
+    <div class="mt-6 pt-4 border-t border-surface-container text-center text-sm space-y-2">
+      <a href="{{ url_for('uye_kayit') }}" class="text-secondary font-semibold hover:underline">Yeni üye kaydı</a>
+      <div><a href="{{ url_for('index') }}" class="text-on-surface-variant hover:underline">← Ana sayfa</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

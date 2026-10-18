@@ -1,0 +1,241 @@
+{% extends "uye_base.html" %}
+{% block title %}Profil — Üye Portalı{% endblock %}
+{% block content %}
+{% set limit = uye.max_odunc_hakki() %}
+{% set acik = uye_ozet.acik_odunc if uye_ozet else 0 %}
+{% set kota_pct = ((acik / limit * 100)|int) if limit else 0 %}
+{% set initials = (uye.ad[:1] ~ uye.soyad[:1])|upper %}
+
+<div class="relative w-full pb-space-xl">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="w-2 h-2 rounded-full bg-secondary"></span>
+        <span class="text-[11px] text-secondary uppercase tracking-widest font-semibold">Kütüphane Kartı · Sicil No: {{ uye.uye_no }}</span>
+      </div>
+      <h1 class="font-display text-2xl md:text-[32px] text-primary tracking-tight">Üye Profili ve Ayarlar</h1>
+      <p class="text-sm text-on-surface-variant mt-1 max-w-2xl">
+        Kişisel iletişim bilgilerinizi, dolaşım kotanızı ve hesap güvenliğinizi yönetin.
+      </p>
+    </div>
+    <div class="flex items-center gap-space-xs self-start md:self-auto text-xs text-on-surface-variant bg-surface-container px-3 py-1.5 rounded-full shadow-sm">
+      <span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+      <span>{% if uye.aktif %}Aktif Üyelik{% else %}Pasif Üyelik{% endif %}</span>
+    </div>
+  </div>
+
+  <div class="relative bg-surface-container-lowest rounded-xl p-space-lg shadow-sm overflow-hidden mb-space-xl">
+    <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-surface-container-high/40 pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 p-4 opacity-5 pointer-events-none">
+      <span class="material-symbols-outlined text-[140px] text-primary">local_library</span>
+    </div>
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-space-md">
+        <div class="relative flex-shrink-0 w-20 h-20 rounded-lg bg-primary-container text-surface flex flex-col items-center justify-center shadow-md">
+          <span class="font-display text-2xl tracking-wider font-semibold">{{ initials }}</span>
+          <span class="text-[9px] text-on-primary-container tracking-widest -mt-1">KART #{{ uye.uye_no }}</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex flex-wrap items-center gap-space-xs mb-1">
+            <h2 class="font-display text-xl text-primary tracking-tight">{{ uye.tam_ad() }}</h2>
+            <span class="bg-secondary-fixed text-on-secondary-fixed text-[11px] font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm">
+              <span class="material-symbols-outlined text-[13px]">school</span>
+              {{ uye.tip }}
+            </span>
+          </div>
+          <p class="text-sm text-on-surface-variant">Atlas Üniversitesi Kütüphane Üyesi</p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="w-1.5 h-1.5 rounded-full {% if uye.aktif and (not uye_ozet or uye_ozet.bekleyen_ceza == 0) %}bg-tertiary-fixed-dim{% else %}bg-error{% endif %}"></span>
+            <span class="text-[11px] font-semibold text-on-tertiary-fixed-variant">
+              Hesap Durumu:
+              {% if not uye.aktif %}Pasif
+              {% elif uye_ozet and uye_ozet.bekleyen_ceza > 0 %}Aktif / Bekleyen Ceza
+              {% else %}Aktif / Temiz Sicil{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-md bg-surface-container-low p-space-md rounded-lg self-stretch lg:self-auto">
+        <div class="flex flex-col">
+          <span class="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">Üye No</span>
+          <span class="text-sm font-semibold text-primary mt-0.5">{{ uye.uye_no }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">Kayıt Tarihi</span>
+          <span class="text-sm font-semibold text-on-surface mt-0.5">{{ uye.kayit_tarihi.strftime('%d %b %Y') }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">Ödünç Limiti</span>
+          <span class="text-sm font-semibold text-on-surface mt-0.5">{{ limit }} Eser</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">Ceza Durumu</span>
+          <span class="text-sm font-semibold text-secondary mt-0.5">{{ '%.2f'|format(uye_ozet.bekleyen_ceza if uye_ozet else 0) }} ₺</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <section class="lg:col-span-7 flex flex-col gap-space-lg">
+      <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+        <div class="flex items-center justify-between pb-space-sm mb-space-md">
+          <div class="flex items-center gap-space-xs">
+            <span class="w-1 h-5 rounded-full bg-secondary"></span>
+            <h3 class="text-base font-semibold text-primary">Kişisel Bilgiler &amp; İletişim</h3>
+          </div>
+          <span class="text-[11px] text-on-surface-variant">Üye Portal Güncellemesi</span>
+        </div>
+        <form method="post" class="space-y-space-md">
+          <input type="hidden" name="eylem" value="profil"/>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-on-surface-variant">Ad</label>
+              <div class="relative">
+                <input name="ad" value="{{ uye.ad }}" required class="w-full h-10 px-3 pl-9 text-sm text-on-surface bg-surface rounded focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary outline-none transition-all"/>
+                <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-secondary">badge</span>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-on-surface-variant">Soyad</label>
+              <div class="relative">
+                <input name="soyad" value="{{ uye.soyad }}" required class="w-full h-10 px-3 pl-9 text-sm text-on-surface bg-surface rounded focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary outline-none transition-all"/>
+                <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-secondary">badge</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-on-surface-variant flex items-center justify-between">
+                <span>Üye Numarası</span>
+                <span class="text-[10px] text-outline font-normal">Değiştirilemez</span>
+              </label>
+              <div class="relative">
+                <input readonly value="{{ uye.uye_no }}" class="w-full h-10 px-3 pl-9 text-sm text-on-surface bg-surface-container-low rounded cursor-not-allowed outline-none"/>
+                <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-outline">fingerprint</span>
+                <span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[18px] text-outline">lock</span>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-on-surface-variant">Üye Tipi</label>
+              <div class="relative">
+                <input readonly value="{{ uye.tip }}" class="w-full h-10 px-3 pl-9 text-sm text-on-surface bg-surface-container-low rounded cursor-not-allowed outline-none"/>
+                <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-outline">school</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface">E-posta</label>
+            <div class="relative">
+              <input name="eposta" type="email" value="{{ uye.eposta }}" required class="w-full h-10 px-3 pl-9 text-sm text-on-surface bg-surface rounded focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary outline-none transition-all"/>
+              <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-secondary">mail</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-on-surface flex items-center justify-between">
+              <span class="font-medium">İletişim Telefonu</span>
+              <span class="text-[11px] text-secondary">İade hatırlatmaları bu numaraya iletilir</span>
+            </label>
+            <div class="relative">
+              <input name="telefon" value="{{ uye.telefon }}" required class="w-full h-10 px-3 pl-9 text-sm text-on-surface bg-surface rounded focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary outline-none transition-all"/>
+              <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-secondary">phone_iphone</span>
+            </div>
+          </div>
+          <div class="pt-space-sm flex justify-end">
+            <button type="submit" class="w-full sm:w-auto h-10 px-6 rounded bg-primary-container text-surface hover:bg-primary text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              Bilgileri Güncelle
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="lg:col-span-5 flex flex-col gap-space-lg">
+      <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+        <div class="flex items-center justify-between pb-space-sm mb-space-md">
+          <div class="flex items-center gap-space-xs">
+            <span class="w-1 h-5 rounded-full bg-secondary"></span>
+            <h3 class="text-base font-semibold text-primary">Dolaşım &amp; Kota Durumu</h3>
+          </div>
+          <span class="text-[11px] bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full font-medium">{{ uye.tip }}</span>
+        </div>
+        <div class="flex items-center gap-space-lg bg-surface-container-low p-space-md rounded-lg mb-space-md">
+          <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
+            <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-surface-variant" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+              <path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="{{ kota_pct }}, 100" stroke-linecap="round" stroke-width="3.5"></path>
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center">
+              <span class="text-base font-semibold text-primary leading-none">{{ acik }}/{{ limit }}</span>
+              <span class="text-[9px] uppercase tracking-wider font-semibold text-on-surface-variant">Kitap</span>
+            </div>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-primary">Aktif Kota: {{ acik }} Eser</span>
+            <p class="text-xs text-on-surface-variant mt-0.5">
+              Kalan <strong class="text-secondary font-semibold">{{ limit - acik }} kitap</strong> daha ödünç alma hakkınız mevcuttur.
+            </p>
+          </div>
+        </div>
+        <div class="space-y-space-sm text-xs">
+          <div class="flex items-center justify-between p-2.5 rounded bg-surface">
+            <span class="text-on-surface-variant flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-secondary">date_range</span>
+              Standart Ödünç Süresi
+            </span>
+            <span class="text-sm font-semibold text-primary">{{ kutuphane.odunc_suresi_gun }} Gün</span>
+          </div>
+          <div class="flex items-center justify-between p-2.5 rounded bg-surface">
+            <span class="text-on-surface-variant flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-secondary">update</span>
+              Çevrimiçi Süre Uzatma
+            </span>
+            <span class="text-sm font-semibold text-primary">1 Sefer (+{{ kutuphane.uzatma_gun }} Gün)</span>
+          </div>
+          <div class="flex items-center justify-between p-2.5 rounded bg-surface">
+            <span class="text-on-surface-variant flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-secondary">gavel</span>
+              Günlük Gecikme Bedeli
+            </span>
+            <span class="text-sm font-semibold text-primary">{{ kutuphane.gunluk_ceza }} TL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-surface-container rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-secondary text-[20px]">lock_reset</span>
+            <span class="text-base font-semibold text-primary">Hesap Güvenliği</span>
+          </div>
+        </div>
+        <p class="text-xs text-on-surface-variant">
+          Portal şifrenizi buradan güncelleyebilirsiniz. Şifre en az 4 karakter olmalıdır.
+        </p>
+        <form method="post" class="space-y-3">
+          <input type="hidden" name="eylem" value="sifre"/>
+          <div>
+            <label class="text-xs font-medium text-on-surface-variant">Mevcut şifre</label>
+            <input name="eski_sifre" type="password" required class="w-full h-10 mt-1 px-3 text-sm bg-surface-container-lowest rounded outline-none focus:ring-1 focus:ring-secondary"/>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-on-surface-variant">Yeni şifre</label>
+            <input name="yeni_sifre" type="password" required minlength="4" class="w-full h-10 mt-1 px-3 text-sm bg-surface-container-lowest rounded outline-none focus:ring-1 focus:ring-secondary"/>
+          </div>
+          <div class="flex flex-wrap items-center gap-space-sm pt-1">
+            <button type="submit" class="h-9 px-4 rounded bg-surface-container-lowest text-primary hover:bg-surface-bright text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all">
+              <span class="material-symbols-outlined text-[16px] text-secondary">key</span>
+              Şifreyi Güncelle
+            </button>
+            <a href="{{ url_for('uye_cikis') }}" class="h-9 px-4 rounded bg-surface-container-lowest text-error hover:bg-error-container hover:text-on-error-container text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[16px]">logout</span>
+              Oturumu Kapat
+            </a>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

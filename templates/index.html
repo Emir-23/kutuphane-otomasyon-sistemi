@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Atlas Kütüphane</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: "Plus Jakarta Sans", sans-serif; background: #f7f3eb; color: #1c1c17; }
+    .font-display { font-family: "Playfair Display", serif; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-3xl">
+    <div class="text-center mb-10">
+      <div class="inline-flex w-14 h-14 rounded-xl bg-[#1b2a24] text-[#e7c08d] items-center justify-center mb-4">
+        <span class="material-symbols-outlined text-3xl">menu_book</span>
+      </div>
+      <h1 class="font-display text-4xl tracking-tight">Atlas Kütüphane</h1>
+      <p class="mt-2 text-[#424845]">Otomasyon sistemi — giriş türünü seçin</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <a href="{{ url_for('uye_giris') }}" class="block bg-white rounded-xl p-8 shadow-sm border border-[#e6e2da] hover:border-[#77592f] transition-colors">
+        <span class="material-symbols-outlined text-[#77592f] text-3xl">school</span>
+        <h2 class="font-display text-2xl mt-4">Üye girişi</h2>
+        <p class="text-sm text-[#424845] mt-2">Katalogu görüntüle, ödünçlerini ve cezalarını takip et.</p>
+        <span class="inline-block mt-6 text-sm font-semibold text-[#1b2a24]">Devam →</span>
+      </a>
+      <a href="{{ url_for('giris') }}" class="block bg-[#1b2a24] text-[#fdf9f1] rounded-xl p-8 shadow-sm hover:opacity-95 transition-opacity">
+        <span class="material-symbols-outlined text-[#e7c08d] text-3xl">badge</span>
+        <h2 class="font-display text-2xl mt-4">Personel girişi</h2>
+        <p class="text-sm text-[#b9cbc1] mt-2">Kitap, üye, ödünç ve ceza işlemlerini yönet.</p>
+        <span class="inline-block mt-6 text-sm font-semibold text-[#e7c08d]">Devam →</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

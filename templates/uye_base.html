@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Üye Portalı — Atlas Kütüphane{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            error: "#ba1a1a",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#f1ede5",
+            "surface-variant": "#e6e2da",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "on-surface": "#1c1c17",
+            secondary: "#77592f",
+            "on-secondary-fixed": "#291800",
+            outline: "#737875",
+            "on-surface-variant": "#424845",
+            "on-tertiary-container": "#5c9b76",
+            "surface-container-high": "#ece8e0",
+            "surface-container-highest": "#e6e2da",
+            "secondary-fixed": "#ffddb3",
+            "secondary-container": "#ffd6a2",
+            "on-secondary-container": "#795b31",
+            "primary-container": "#1b2a24",
+            primary: "#061510",
+            surface: "#fdf9f1",
+            "surface-container-low": "#f7f3eb",
+            "tertiary-fixed": "#aff1c7",
+            "tertiary-fixed-dim": "#94d5ac",
+            "on-tertiary-fixed-variant": "#0c5133",
+            "on-tertiary-fixed": "#002111",
+            "primary-fixed-dim": "#b9cbc1",
+            "on-primary-container": "#81928a",
+            "outline-variant": "#c3c8c3",
+            "surface-bright": "#fdf9f1",
+            "on-primary": "#ffffff"
+          },
+          spacing: {
+            "space-xs": "0.25rem", "space-sm": "0.5rem", "space-md": "1rem",
+            "space-lg": "1.5rem", "space-xl": "2.5rem", margin: "2rem", gutter: "1.5rem"
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: "Plus Jakarta Sans", sans-serif; }
+    .font-display { font-family: "Playfair Display", serif; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-surface-container-low text-on-surface antialiased min-h-screen">
+{% if uye %}
+<header class="fixed top-0 left-0 w-full z-50 bg-primary-container text-surface">
+  <div class="h-16 max-w-6xl mx-auto px-gutter flex items-center justify-between">
+    <div class="flex items-center gap-space-lg">
+      <div class="flex items-baseline gap-space-xs">
+        <span class="font-display text-2xl text-surface tracking-tight">Atlas</span>
+        <span class="text-[11px] text-on-primary-container uppercase tracking-wider pl-1.5">Kütüphane · Üye Portalı</span>
+      </div>
+      <nav class="hidden md:flex items-center gap-space-xs ml-space-md text-sm">
+        {% set links = [
+          ('uye_panel', 'panel', 'Özet'),
+          ('uye_katalog', 'katalog', 'Katalog'),
+          ('uye_oduncler', 'oduncler', 'Ödünçlerim'),
+          ('uye_cezalar', 'cezalar', 'Cezalarım'),
+          ('uye_profil', 'profil', 'Profil')
+        ] %}
+        {% for endpoint, key, label in links %}
+        <a href="{{ url_for(endpoint) }}"
+           class="px-3 py-2 rounded transition-colors font-semibold
+           {% if active == key %}bg-surface/10 text-surface{% else %}text-on-primary-container hover:text-surface{% endif %}">
+          {{ label }}
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+    <div class="flex items-center gap-space-md">
+      <a href="{{ url_for('uye_cikis') }}" class="text-xs text-on-primary-container hover:text-surface px-3 py-1.5 rounded">Çıkış</a>
+      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-[18px]">person</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="fixed top-16 left-0 w-full z-40 bg-surface-container border-b border-surface-variant/70">
+  <div class="h-11 max-w-6xl mx-auto px-gutter flex items-center justify-between text-[11px] flex-wrap gap-2 py-1">
+    <div class="flex items-center gap-space-sm text-on-surface">
+      <span class="text-sm font-semibold">{{ uye.tam_ad() }}</span>
+      <span class="text-outline">·</span>
+      <span class="text-on-surface-variant">Üye No: {{ uye.uye_no }}</span>
+      <span class="bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full font-semibold">{{ uye.tip }}</span>
+    </div>
+    {% if uye_ozet %}
+    <div class="flex items-center gap-space-md text-on-surface-variant">
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim inline-block"></span>
+        Aktif Ödünç: <strong class="text-on-surface">{{ uye_ozet.acik_odunc }} Eser</strong>
+      </span>
+      <span class="text-outline-variant hidden sm:inline">|</span>
+      <span class="flex items-center gap-1">Geciken: <strong class="{% if uye_ozet.geciken %}text-error{% else %}text-on-surface{% endif %}">{{ uye_ozet.geciken }}</strong></span>
+      <span class="text-outline-variant hidden sm:inline">|</span>
+      <span class="flex items-center gap-1">Ceza: <strong class="{% if uye_ozet.bekleyen_ceza %}text-error{% else %}text-on-surface{% endif %}">{{ '%.2f'|format(uye_ozet.bekleyen_ceza) }} ₺</strong></span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<main class="w-full pt-[108px] bg-surface-container-low min-h-[calc(100vh-68px)]">
+  <div class="max-w-6xl mx-auto px-gutter py-space-lg">
+{% else %}
+<main class="w-full min-h-screen">
+  <div class="{% block auth_wrap %}{% endblock %}">
+{% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="space-y-2 mb-4 {% if not uye %}max-w-lg mx-auto px-4 pt-6{% endif %}">
+        {% for category, message in messages %}
+        <div class="rounded-lg px-4 py-2 text-sm {% if not uye %}text-center{% endif %}
+          {% if category == 'error' %}bg-error-container text-on-error-container
+          {% else %}bg-tertiary-fixed text-on-tertiary-fixed-variant{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+{% if uye %}
+  </div>
+</main>
+<footer class="w-full bg-surface-container border-t border-surface-variant/50 py-space-md">
+  <div class="max-w-6xl mx-auto px-gutter flex flex-col sm:flex-row items-center justify-between gap-space-sm text-[11px] text-on-surface-variant">
+    <span>Atlas Üniversitesi Kütüphane ve Dokümantasyon Daire Başkanlığı</span>
+    <span>Danışma: kutuphane@atlas.edu.tr</span>
+  </div>
+</footer>
+{% else %}
+  </div>
+</main>
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,226 @@
+{% extends "uye_base.html" %}
+{% block title %}Ödünçlerim — Üye Portalı{% endblock %}
+{% block content %}
+{% set limit = uye.max_odunc_hakki() %}
+{% set kota_pct = ((acik_sayisi / limit * 100)|int) if limit else 0 %}
+
+<div class="w-full mb-space-lg flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+  <div class="flex flex-col gap-1 max-w-xl">
+    <div class="flex items-center gap-space-xs text-on-surface-variant text-[11px] uppercase tracking-widest font-semibold">
+      <span>Kişisel Arşiv</span>
+      <span class="text-secondary">✦</span>
+      <span>Sirkülasyon Kayıtları</span>
+    </div>
+    <h1 class="font-display text-2xl text-primary tracking-tight">Ödünçlerim</h1>
+    <p class="text-sm text-on-surface-variant">
+      Standart ödünç süresi {{ kutuphane.odunc_suresi_gun }} gündür · Kitap uzatma ve iade işlemleri kütüphane görevlisi tarafından bankodan yapılır.
+    </p>
+  </div>
+  <div class="bg-surface-container p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs min-w-[280px]">
+    <div class="flex items-center justify-between text-xs">
+      <span class="text-on-surface-variant flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px] text-secondary">book_4</span>
+        Ödünç Kotanız
+      </span>
+      <span class="text-sm text-primary font-semibold">{{ acik_sayisi }} <span class="text-on-surface-variant font-normal">/ {{ limit }} Eser</span></span>
+    </div>
+    <div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden">
+      <div class="bg-primary-container h-full rounded-full transition-all duration-500" style="width: {{ kota_pct }}%;"></div>
+    </div>
+    <div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+      <span class="text-secondary font-medium">{{ limit - acik_sayisi }} kitap daha alabilirsiniz</span>
+      <span class="text-outline">%{{ kota_pct }} Kullanımda</span>
+    </div>
+  </div>
+</div>
+
+{% if acik_sayisi > 0 and siradaki_iade %}
+<div class="w-full bg-surface-container-high rounded-xl p-space-md shadow-sm mb-space-lg flex flex-col sm:flex-row items-center gap-space-md overflow-hidden relative">
+  <div class="w-12 h-12 rounded-lg bg-surface-container-lowest flex items-center justify-center shrink-0 shadow-sm">
+    <span class="material-symbols-outlined text-secondary text-[24px]">schedule</span>
+  </div>
+  <div class="flex-1 flex flex-col gap-0.5">
+    <span class="text-[11px] uppercase tracking-wider text-secondary font-semibold">Aktif Okuma Dönemi</span>
+    <p class="text-sm text-primary font-semibold">Elinizdeki {{ acik_sayisi }} eserin sıradaki iade tarihi <span class="text-secondary">{{ siradaki_iade.strftime('%d %B %Y') }}</span>.</p>
+    <p class="text-xs text-on-surface-variant">Zamanında iade edilen eserler diğer üyelerin erişim hakkını korur.</p>
+  </div>
+  <div class="flex items-center gap-space-xs bg-surface-container-lowest px-3 py-2 rounded-lg shadow-sm shrink-0">
+    <span class="material-symbols-outlined text-secondary text-[20px]">event</span>
+    <div class="flex flex-col">
+      <span class="text-[11px] text-on-surface-variant leading-none">Sıradaki Teslim</span>
+      <span class="text-xs text-primary font-semibold leading-tight">{{ siradaki_iade.strftime('%d.%m.%Y') }}</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-md mb-space-md flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+  <div class="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
+    {% for key, label, count in [
+      ('hepsi','Tümü', sayilar.hepsi),
+      ('acik','Açık', sayilar.acik),
+      ('geciken','Geciken', sayilar.geciken),
+      ('iade','Geçmiş', sayilar.iade)
+    ] %}
+    <a href="{{ url_for('uye_oduncler', filtre=key) }}"
+       class="px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap
+       {% if filtre == key %}bg-primary-container text-surface{% else %}text-on-surface-variant hover:text-primary hover:bg-surface-container{% endif %}">
+      <span>{{ label }}</span>
+      <span class="px-1.5 py-0.5 rounded-full text-[11px]
+        {% if filtre == key %}bg-surface/20 text-surface
+        {% elif key == 'acik' %}bg-tertiary-fixed text-on-tertiary-fixed
+        {% else %}bg-surface-container-high text-on-surface-variant{% endif %}">{{ count }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  <form method="get" class="relative w-full lg:w-80">
+    <input type="hidden" name="filtre" value="{{ filtre }}"/>
+    <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span>
+    <input name="q" value="{{ request.args.get('q','') }}"
+           class="w-full bg-surface-container-low text-on-surface text-xs pl-9 pr-3 py-2 rounded focus:outline-none focus:bg-surface-container-lowest placeholder:text-outline transition-colors"
+           placeholder="Ödünç aldığınız kitaplarda arayın..."
+           oninput="filterLocal(this.value)"/>
+  </form>
+</div>
+
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mb-space-lg">
+  {% if oduncler %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-left" id="borrow-table">
+      <thead>
+        <tr class="bg-surface-container text-on-surface-variant text-[11px] uppercase tracking-wider">
+          <th class="py-3 px-space-md">Kitap &amp; Eser Adı</th>
+          <th class="py-3 px-space-md">Alış Tarihi</th>
+          <th class="py-3 px-space-md">Planlanan İade</th>
+          <th class="py-3 px-space-md">Durum</th>
+          <th class="py-3 px-space-md">Görevli</th>
+        </tr>
+      </thead>
+      <tbody class="text-xs" id="table-body">
+        {% for o in oduncler %}
+        {% set kalan = (o.planlanan_iade - bugun).days %}
+        <tr class="book-row hover:bg-surface-container-low/70 transition-colors {% if o.durum == 'iade' %}opacity-75{% elif o.gecikti_mi() %}bg-error-container/20{% endif %}"
+            data-search="{{ o.kitap_ad|lower }} {{ o.kitap_isbn|lower }} {{ o.personel_ad|lower }}">
+          <td class="py-space-md px-space-md">
+            <div class="flex flex-col min-w-0">
+              <span class="text-sm text-on-surface font-semibold truncate book-title">{{ o.kitap_ad }}</span>
+              <div class="flex items-center gap-space-xs mt-1 flex-wrap">
+                <span class="text-[11px] bg-surface-container-high text-primary px-1.5 py-0.5 rounded font-mono">ISBN: {{ o.kitap_isbn or '—' }}</span>
+                {% if o.uzatildi %}
+                <span class="text-[11px] text-secondary font-medium">Uzatıldı</span>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="py-space-md px-space-md text-on-surface font-medium whitespace-nowrap">
+            {{ o.alis_tarihi.strftime('%d.%m.%Y') }}
+          </td>
+          <td class="py-space-md px-space-md whitespace-nowrap">
+            <div class="flex flex-col">
+              <span class="text-on-surface font-semibold {% if o.gecikti_mi() %}text-error{% endif %}">{{ o.planlanan_iade.strftime('%d.%m.%Y') }}</span>
+              {% if o.durum == 'iade' %}
+              <span class="text-[11px] text-outline">
+                {% if o.gercek_iade %}Teslim: {{ o.gercek_iade.strftime('%d.%m.%Y') }}{% else %}İade edildi{% endif %}
+              </span>
+              {% elif o.gecikti_mi() %}
+              <span class="text-[11px] text-error font-medium flex items-center gap-0.5">
+                <span class="material-symbols-outlined text-[13px]">warning</span> {{ o.gecikme_gunu() }} gün gecikti
+              </span>
+              {% else %}
+              <span class="text-[11px] text-on-tertiary-fixed-variant font-medium flex items-center gap-0.5">
+                <span class="material-symbols-outlined text-[13px] text-tertiary-fixed-dim">timer</span> {{ kalan }} gün kaldı
+              </span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="py-space-md px-space-md whitespace-nowrap">
+            {% if o.durum == 'iade' %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-surface-container-high text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-[13px]">check</span> İade Edildi
+            </span>
+            {% elif o.gecikti_mi() %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-error-container text-on-error-container font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-error"></span> Gecikti
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-tertiary-fixed text-on-tertiary-fixed font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed-variant"></span> Açık / Zamanında
+            </span>
+            {% endif %}
+          </td>
+          <td class="py-space-md px-space-md text-on-surface-variant whitespace-nowrap">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-outline">badge</span>
+              <span>{{ o.personel_ad }}</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="hidden p-space-xl flex-col items-center justify-center text-center" id="empty-state">
+    <span class="material-symbols-outlined text-outline text-[44px] mb-2">find_in_page</span>
+    <p class="text-sm font-semibold text-on-surface">Aranan kriterde ödünç kaydı bulunamadı</p>
+    <p class="text-xs text-on-surface-variant mt-1">Farklı bir arama terimi girin veya filtre sekmesini değiştirin.</p>
+  </div>
+  {% else %}
+  <div class="p-space-xl flex flex-col items-center justify-center text-center">
+    <span class="material-symbols-outlined text-outline text-[44px] mb-2">swap_horiz</span>
+    <p class="text-sm font-semibold text-on-surface">Bu filtrede ödünç kaydınız bulunmuyor</p>
+    <p class="text-xs text-on-surface-variant mt-1">Katalogdan kitap inceleyebilir, ödünç için kütüphane bankosuna başvurabilirsiniz.</p>
+    <a href="{{ url_for('uye_katalog') }}" class="mt-4 px-4 py-2 rounded bg-primary-container text-surface text-sm font-semibold">Kataloğa Git</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="w-full grid grid-cols-1 md:grid-cols-2 gap-space-md">
+  <div class="bg-surface-container p-space-md rounded-xl shadow-sm flex items-start gap-space-sm">
+    <div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 mt-0.5">
+      <span class="material-symbols-outlined text-on-secondary-fixed text-[18px]">update</span>
+    </div>
+    <div class="flex flex-col gap-0.5">
+      <span class="text-sm font-semibold text-primary">Süre Uzatma Kuralı</span>
+      <p class="text-xs text-on-surface-variant">
+        İade tarihine 3 gün kala başka bir üye tarafından rezerve edilmemişse <strong class="text-on-surface">{{ kutuphane.uzatma_gun }} gün ek süre</strong> verilebilir. Uzatma için kütüphane sirkülasyon bankosuna başvurunuz.
+      </p>
+    </div>
+  </div>
+  <div class="bg-surface-container p-space-md rounded-xl shadow-sm flex items-start gap-space-sm">
+    <div class="w-8 h-8 rounded-full bg-error-container flex items-center justify-center shrink-0 mt-0.5">
+      <span class="material-symbols-outlined text-error text-[18px]">gavel</span>
+    </div>
+    <div class="flex flex-col gap-0.5">
+      <span class="text-sm font-semibold text-primary">Gecikme Kuralı</span>
+      <p class="text-xs text-on-surface-variant">
+        İade tarihi geçen yayınlar için gün başına <strong class="text-error">{{ kutuphane.gunluk_ceza }} TL gecikme bedeli</strong> tahakkuk eder. Bakiye cezası bulunan üyelerin yeni ödünç işlemi kısıtlanır.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function filterLocal(query) {
+    query = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.book-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const hay = row.getAttribute('data-search') || '';
+      const show = !query || hay.includes(query);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    const emptyEl = document.getElementById('empty-state');
+    if (!emptyEl) return;
+    if (rows.length && visible === 0) {
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    } else {
+      emptyEl.classList.add('hidden');
+      emptyEl.classList.remove('flex');
+    }
+  }
+</script>
+{% endblock %}

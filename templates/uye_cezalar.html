@@ -1,0 +1,295 @@
+{% extends "uye_base.html" %}
+{% block title %}Cezalarım — Üye Portalı{% endblock %}
+{% block content %}
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-xl">
+  <div>
+    <div class="flex items-center gap-2 mb-1.5">
+      <span class="w-2 h-2 rounded-full bg-secondary"></span>
+      <span class="text-[11px] uppercase tracking-wider text-secondary font-semibold">Mali Kayıtlar ve Dolaşım Birimi</span>
+    </div>
+    <h1 class="font-display text-[32px] text-primary tracking-tight">Cezalarım</h1>
+    <p class="text-sm text-on-surface-variant mt-1 max-w-xl">
+      Geciken materyaller ve tahakkuk eden kütüphane gecikme bedelleri.
+    </p>
+  </div>
+  <div class="self-start md:self-auto flex items-center gap-2.5 px-3.5 py-2 bg-surface-container rounded-lg shadow-sm">
+    <span class="material-symbols-outlined text-secondary text-[18px]">gavel</span>
+    <div class="text-[11px] text-on-surface-variant">
+      <span class="text-on-surface font-semibold text-[13px]">Günlük Ceza Tarifesi:</span> {{ kutuphane.gunluk_ceza }} TL / Gün
+    </div>
+  </div>
+</section>
+
+<section class="grid grid-cols-1 md:grid-cols-3 gap-space-md mb-space-xl">
+  <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+    <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-tertiary-fixed/30 pointer-events-none"></div>
+    <div class="flex items-start justify-between">
+      <div>
+        <span class="text-[11px] uppercase text-on-surface-variant tracking-wider font-semibold">Aktif Borç Durumu</span>
+        <div class="font-display text-[32px] {% if bekleyen %}text-error{% else %}text-primary{% endif %} mt-1 font-semibold">
+          {{ '%.2f'|format(bekleyen) }} <span class="text-sm font-normal text-on-surface-variant">TL</span>
+        </div>
+      </div>
+      <div class="w-10 h-10 rounded-full {% if bekleyen %}bg-error-container text-error{% else %}bg-tertiary-fixed text-on-tertiary-fixed-variant{% endif %} flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">{% if bekleyen %}error{% else %}check_circle{% endif %}</span>
+      </div>
+    </div>
+    <div class="mt-4 pt-3 flex items-center gap-2">
+      {% if bekleyen %}
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container text-on-error-container text-[11px] font-semibold">
+        <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+        {{ bekleyen_list|length }} adet ödenmemiş ceza
+      </span>
+      {% else %}
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-tertiary-fixed/40 text-on-tertiary-fixed-variant text-[11px] font-semibold">
+        <span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed-variant"></span>
+        Ödenmemiş cezanız bulunmamaktadır
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+    <div class="flex items-start justify-between">
+      <div>
+        <span class="text-[11px] uppercase text-on-surface-variant tracking-wider font-semibold">Gecikmedeki Materyal</span>
+        <div class="font-display text-[32px] text-on-surface mt-1 font-semibold">
+          {{ uye_ozet.geciken if uye_ozet else 0 }} <span class="text-sm font-normal text-on-surface-variant">Adet</span>
+        </div>
+      </div>
+      <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+        <span class="material-symbols-outlined text-[20px]">auto_stories</span>
+      </div>
+    </div>
+    <div class="mt-4 pt-3 flex items-center gap-2 text-on-surface-variant text-xs">
+      {% if uye_ozet and uye_ozet.geciken %}
+      <span class="material-symbols-outlined text-error text-[16px]">warning</span>
+      <span>Geciken yayınlarınız için ceza tahakkuk edebilir</span>
+      {% else %}
+      <span class="material-symbols-outlined text-secondary text-[16px]">verified</span>
+      <span>Tüm yayınlarınız zamanında teslim edildi</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+    <div class="flex items-start justify-between">
+      <div>
+        <span class="text-[11px] uppercase text-on-surface-variant tracking-wider font-semibold">Geçmiş Tahsil Edilen</span>
+        <div class="font-display text-[32px] text-secondary mt-1 font-semibold">
+          {{ '%.2f'|format(odenen) }} <span class="text-sm font-normal text-on-surface-variant">TL</span>
+        </div>
+      </div>
+      <div class="w-10 h-10 rounded-full bg-secondary-fixed/50 flex items-center justify-center text-on-secondary-fixed">
+        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+      </div>
+    </div>
+    <div class="mt-4 pt-3 flex items-center justify-between text-on-surface-variant text-xs">
+      <span>{{ odenen_list|length }} adet geçmiş ceza ödendi</span>
+      <span class="text-[11px] text-secondary uppercase font-semibold">Arşiv Kaydı</span>
+    </div>
+  </div>
+</section>
+
+<section class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mb-space-lg">
+  <div class="px-space-lg pt-space-md bg-surface-container flex flex-wrap items-center justify-between gap-4">
+    <div class="flex gap-2" role="tablist">
+      <button type="button" class="fine-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg bg-surface-container-lowest text-on-surface text-sm font-semibold shadow-sm transition-colors" data-tab="unpaid" onclick="switchFineTab('unpaid')">
+        <span>Bekleyen Cezalar</span>
+        <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px]">{{ bekleyen_list|length }}</span>
+      </button>
+      <button type="button" class="fine-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-on-surface-variant hover:text-on-surface text-sm font-semibold transition-colors" data-tab="history" onclick="switchFineTab('history')">
+        <span>Ödenmiş Geçmiş</span>
+        <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px]">{{ odenen_list|length }}</span>
+      </button>
+      <button type="button" class="fine-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-on-surface-variant hover:text-on-surface text-sm font-semibold transition-colors" data-tab="all" onclick="switchFineTab('all')">
+        <span>Tüm Kayıtlar</span>
+        <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px]">{{ cezalar|length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="fine-tab-panel p-space-xl flex flex-col items-center justify-center text-center" id="tab-panel-unpaid">
+    {% if bekleyen_list %}
+    <div class="w-full overflow-x-auto -m-space-xl">
+      <table class="w-full text-left">
+        <thead class="bg-surface-container text-[11px] text-on-surface-variant uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-space-lg">Eser / Kitap</th>
+            <th class="py-3 px-space-md">Gecikme</th>
+            <th class="py-3 px-space-md">Tutar</th>
+            <th class="py-3 px-space-lg text-right">Durum</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container text-sm">
+          {% for c in bekleyen_list %}
+          <tr class="hover:bg-surface-container/50">
+            <td class="py-4 px-space-lg">
+              <span class="font-semibold text-on-surface">{{ c.kitap_ad }}</span>
+            </td>
+            <td class="py-4 px-space-md whitespace-nowrap">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-secondary text-[18px]">schedule</span>
+                <span>{{ c.gun_sayisi }} gün</span>
+              </div>
+              <span class="text-[11px] text-on-surface-variant">({{ c.gunluk_tutar }} TL × {{ c.gun_sayisi }} gün)</span>
+            </td>
+            <td class="py-4 px-space-md font-semibold text-error whitespace-nowrap">{{ c.toplam_tutar }} TL</td>
+            <td class="py-4 px-space-lg text-right whitespace-nowrap">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container text-on-error-container text-[11px] font-semibold">Ödenmedi</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center text-secondary mb-space-md">
+      <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+    </div>
+    <h3 class="font-display text-xl text-on-surface font-semibold mb-2">Borcunuz Yoktur</h3>
+    <p class="text-[15px] text-on-surface-variant max-w-lg mb-space-md">
+      Harika! Adınıza kayıtlı bekleyen herhangi bir ceza bulunmamaktadır.
+    </p>
+    <div class="flex items-center gap-space-sm flex-wrap justify-center">
+      <a href="{{ url_for('uye_katalog') }}" class="px-4 py-2 rounded bg-primary-container text-surface text-sm font-semibold hover:bg-primary transition-colors flex items-center gap-2 shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">search</span>
+        Katalogda Kitap Ara
+      </a>
+      <button type="button" class="px-4 py-2 rounded bg-surface-container text-on-surface text-sm font-semibold hover:bg-surface-variant transition-colors" onclick="switchFineTab('history')">
+        Geçmiş Tahsilatları İncele
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="fine-tab-panel hidden w-full" id="tab-panel-history">
+    {% if odenen_list %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-surface-container text-[11px] text-on-surface-variant uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-space-lg">Eser / Kitap</th>
+            <th class="py-3 px-space-md">Gecikme Süresi</th>
+            <th class="py-3 px-space-md">Tutar</th>
+            <th class="py-3 px-space-lg text-right">Durum</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container text-sm">
+          {% for c in odenen_list %}
+          <tr class="hover:bg-surface-container/50 transition-colors">
+            <td class="py-4 px-space-lg">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-12 bg-surface-container-high rounded flex items-center justify-center text-on-surface-variant flex-shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">menu_book</span>
+                </div>
+                <div>
+                  <span class="font-semibold text-on-surface block">{{ c.kitap_ad }}</span>
+                  <span class="text-[11px] text-on-surface-variant">Makbuz #{{ c.ceza_id }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-space-md whitespace-nowrap">
+              <div class="flex items-center gap-1.5 text-on-surface">
+                <span class="material-symbols-outlined text-secondary text-[18px]">schedule</span>
+                <span>{{ c.gun_sayisi }} gün gecikme</span>
+              </div>
+              <span class="text-[11px] text-on-surface-variant">({{ c.gunluk_tutar }} TL × {{ c.gun_sayisi }} gün)</span>
+            </td>
+            <td class="py-4 px-space-md whitespace-nowrap">
+              <span class="font-semibold text-on-surface">{{ c.toplam_tutar }} TL</span>
+            </td>
+            <td class="py-4 px-space-lg whitespace-nowrap text-right">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant text-[11px] font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Ödendi
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="p-space-md bg-surface-container-low flex items-center justify-between text-xs text-on-surface-variant">
+      <span>Toplam {{ odenen_list|length }} adet arşivlenmiş gecikme tahsilatı listelenmektedir.</span>
+    </div>
+    {% else %}
+    <div class="p-space-xl text-center text-sm text-on-surface-variant">Ödenmiş ceza kaydı bulunmuyor.</div>
+    {% endif %}
+  </div>
+
+  <div class="fine-tab-panel hidden w-full" id="tab-panel-all">
+    {% if cezalar %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-surface-container text-[11px] text-on-surface-variant uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-space-lg">Eser / Kitap</th>
+            <th class="py-3 px-space-md">Gün</th>
+            <th class="py-3 px-space-md">Tutar</th>
+            <th class="py-3 px-space-lg text-right">Durum</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container text-sm">
+          {% for c in cezalar %}
+          <tr class="hover:bg-surface-container/50 {% if c.odendi %}opacity-70{% endif %}">
+            <td class="py-4 px-space-lg font-semibold">{{ c.kitap_ad }}</td>
+            <td class="py-4 px-space-md">{{ c.gun_sayisi }} gün</td>
+            <td class="py-4 px-space-md font-semibold {% if not c.odendi %}text-error{% endif %}">{{ c.toplam_tutar }} TL</td>
+            <td class="py-4 px-space-lg text-right">
+              {% if c.odendi %}
+              <span class="text-[11px] px-2.5 py-1 rounded-full bg-surface-container font-semibold">Ödendi</span>
+              {% else %}
+              <span class="text-[11px] px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-semibold">Ödenmedi</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-space-xl text-center text-sm text-on-surface-variant">Henüz ceza kaydınız bulunmuyor.</div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="bg-surface-container rounded-xl p-space-lg shadow-sm relative overflow-hidden">
+  <div class="flex flex-col sm:flex-row items-start gap-space-md">
+    <div class="w-12 h-12 rounded-lg bg-secondary/15 text-secondary flex items-center justify-center flex-shrink-0">
+      <span class="material-symbols-outlined text-[26px]">account_balance_wallet</span>
+    </div>
+    <div class="flex-1">
+      <h4 class="text-sm text-on-surface font-semibold mb-1">Ödeme ve Dolaşım Bilgilendirmesi</h4>
+      <p class="text-sm text-on-surface-variant leading-relaxed">
+        Cezalar kütüphane <strong class="text-on-surface font-medium">Danışma ve Ödünç-Verme Bankosuna</strong> ödenebilir. Ödenmemiş cezası bulunan üyelerin yeni kitap ödünç alma hakkı askıya alınır.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function switchFineTab(tabName) {
+    const panels = {
+      unpaid: document.getElementById('tab-panel-unpaid'),
+      history: document.getElementById('tab-panel-history'),
+      all: document.getElementById('tab-panel-all')
+    };
+    document.querySelectorAll('.fine-tab-btn').forEach(btn => {
+      btn.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-sm');
+      btn.classList.add('text-on-surface-variant');
+      if (btn.dataset.tab === tabName) {
+        btn.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-sm');
+        btn.classList.remove('text-on-surface-variant');
+      }
+    });
+    Object.keys(panels).forEach(key => {
+      if (!panels[key]) return;
+      if (key === tabName) panels[key].classList.remove('hidden');
+      else panels[key].classList.add('hidden');
+    });
+  }
+</script>
+{% endblock %}

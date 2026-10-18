@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Üyeler — Atlas Kütüphane{% endblock %}
+{% block crumb %}Üyeler{% endblock %}
+{% block content %}
+<div class="px-margin py-space-lg flex flex-col gap-space-lg max-w-[1440px] w-full mx-auto">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+    <div>
+      <div class="text-[11px] uppercase tracking-wider text-on-surface-variant mb-1">Sicil Kütüğü</div>
+      <h1 class="font-display text-4xl text-primary tracking-tight">Üyeler</h1>
+      <p class="text-sm text-on-surface-variant">Toplam {{ uyeler|length }} kayıt (filtreli)</p>
+    </div>
+    <button type="button" onclick="openDrawer()"
+            class="px-space-lg py-space-sm rounded-lg bg-primary-container text-surface text-sm font-semibold flex items-center gap-space-xs">
+      <span class="material-symbols-outlined text-base">add</span>
+      Yeni üye
+    </button>
+  </div>
+
+  <form method="get" class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col lg:flex-row gap-space-md items-stretch lg:items-center">
+    <div class="relative flex-1 max-w-md">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+      <input name="q" value="{{ q }}" class="w-full h-10 pl-10 pr-3 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="Ad, numara veya e-posta"/>
+    </div>
+    <div class="flex flex-wrap gap-space-xs">
+      {% for key, label in [('all','Tümü'),('aktif','Aktif'),('pasif','Pasif')] %}
+      <a href="{{ url_for('uyeler', durum=key, q=q) }}"
+         class="px-3 py-1 rounded-full text-xs font-medium {% if durum == key %}bg-primary-container text-surface{% else %}bg-surface-container-low{% endif %}">
+        {{ label }}
+      </a>
+      {% endfor %}
+    </div>
+    <button class="h-10 px-4 rounded-lg bg-surface-container text-sm font-semibold">Ara</button>
+  </form>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    {% if uyeler %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="bg-surface-container-high text-on-surface-variant text-[11px] uppercase tracking-wider">
+            <th class="py-3 px-4">Üye No</th>
+            <th class="py-3 px-4">Ad Soyad</th>
+            <th class="py-3 px-4">E-posta</th>
+            <th class="py-3 px-4">Telefon</th>
+            <th class="py-3 px-4">Kayıt</th>
+            <th class="py-3 px-4">Durum</th>
+            <th class="py-3 px-4 text-right">İşlem</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container">
+          {% for u in uyeler %}
+          <tr class="hover:bg-surface-container-low {% if not u.aktif %}opacity-70{% endif %}">
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-mono text-xs font-semibold">{{ u.uye_no }}</span>
+            </td>
+            <td class="py-3 px-4">
+              <div class="font-semibold">{{ u.tam_ad() }}</div>
+              <div class="text-[11px] text-on-surface-variant">{{ u.tip }}</div>
+            </td>
+            <td class="py-3 px-4 text-on-surface-variant font-mono text-xs">{{ u.eposta }}</td>
+            <td class="py-3 px-4 font-mono text-xs">{{ u.telefon }}</td>
+            <td class="py-3 px-4 text-on-surface-variant text-xs">{{ u.kayit_tarihi.strftime('%d.%m.%Y') }}</td>
+            <td class="py-3 px-4">
+              {% if u.aktif %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-fixed/40 text-on-tertiary-fixed-variant text-[11px] font-semibold">Aktif</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px] font-semibold">Pasif</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <a href="{{ url_for('uye_detay', uye_id=u.uye_id) }}" class="text-secondary text-xs font-semibold hover:underline px-1">Detay</a>
+              <a href="{{ url_for('uyeler', duzenle=u.uye_id, q=q, durum=durum) }}" class="text-primary text-xs font-semibold hover:underline px-1">Düzenle</a>
+              <form method="post" class="inline">
+                <input type="hidden" name="uye_id" value="{{ u.uye_id }}"/>
+                {% if u.aktif %}
+                <input type="hidden" name="eylem" value="pasif"/>
+                <button class="text-on-surface-variant text-xs font-semibold hover:underline px-1" onclick="return confirm('Üye pasife alınsın mı?');">Pasife al</button>
+                {% else %}
+                <input type="hidden" name="eylem" value="aktif"/>
+                <button class="text-on-surface-variant text-xs font-semibold hover:underline px-1">Aktifleştir</button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      {% with icon='group', title='Üye bulunamadı', message='Arama veya filtre sonucu boş. Yeni üye ekleyebilirsiniz.' %}
+        {% include '_empty.html' %}
+      {% endwith %}
+    {% endif %}
+  </div>
+</div>
+
+<div id="overlay" class="fixed inset-0 bg-primary/30 z-50 opacity-0 pointer-events-none transition-opacity" onclick="closeDrawer()"></div>
+<aside id="drawer" class="fixed top-0 right-0 h-full w-full max-w-[460px] bg-surface-container-lowest shadow-xl z-50 flex flex-col transition-transform translate-x-full">
+  <div class="px-8 py-6 bg-surface-container-low flex items-start justify-between">
+    <div>
+      <div class="text-[11px] uppercase tracking-wider text-secondary font-semibold mb-1">Kayıt Konsolu</div>
+      <h2 class="font-display text-2xl text-primary" id="drawer-title">Yeni üye</h2>
+    </div>
+    <button type="button" onclick="closeDrawer()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-container">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+  <form method="post" class="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-space-md" id="uye-form">
+    <input type="hidden" name="eylem" id="uye-eylem" value="ekle"/>
+    <input type="hidden" name="uye_id" id="uye-id" value=""/>
+    <div>
+      <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Üye Tipi</label>
+      <select name="tip" id="uye-tip" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none">
+        <option>Öğrenci</option>
+        <option>Akademisyen</option>
+        <option>İdari</option>
+      </select>
+    </div>
+    <div id="uye-no-wrap">
+      <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Üye No</label>
+      <input name="uye_no" id="uye-no" value="{{ sonraki_no }}" readonly class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container text-primary font-mono font-semibold text-sm"/>
+    </div>
+    <div class="grid grid-cols-2 gap-space-md">
+      <div>
+        <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Ad</label>
+        <input name="ad" id="uye-ad" required class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+      </div>
+      <div>
+        <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Soyad</label>
+        <input name="soyad" id="uye-soyad" required class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+      </div>
+    </div>
+    <div>
+      <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">E-posta</label>
+      <input name="eposta" id="uye-eposta" type="email" required class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+    </div>
+    <div>
+      <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Telefon</label>
+      <input name="telefon" id="uye-telefon" required class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="05XX XXX XX XX"/>
+    </div>
+    <div id="uye-sifre-wrap">
+      <label class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Portal şifresi</label>
+      <input name="sifre" id="uye-sifre" value="uye123" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+      <p class="text-[11px] text-outline mt-1">Üye portalına bu şifreyle girer. Boş bırakılırsa uye123 olur.</p>
+    </div>
+    <div class="mt-auto flex justify-end gap-space-md pt-4">
+      <button type="button" onclick="closeDrawer()" class="px-4 py-2 rounded-lg bg-surface-container-highest/60 text-sm font-semibold">Vazgeç</button>
+      <button type="submit" id="uye-submit" class="px-6 py-2 rounded-lg bg-primary-container text-surface text-sm font-semibold flex items-center gap-1">
+        <span class="material-symbols-outlined text-base">check</span> <span id="uye-submit-label">Kaydet</span>
+      </button>
+    </div>
+  </form>
+</aside>
+{% endblock %}
+{% block scripts %}
+<script>
+  function openDrawer() {
+    document.getElementById('drawer-title').textContent = 'Yeni üye';
+    document.getElementById('uye-eylem').value = 'ekle';
+    document.getElementById('uye-id').value = '';
+    document.getElementById('uye-no-wrap').style.display = '';
+    document.getElementById('uye-sifre-wrap').style.display = '';
+    document.getElementById('uye-no').value = '{{ sonraki_no }}';
+    document.getElementById('uye-ad').value = '';
+    document.getElementById('uye-soyad').value = '';
+    document.getElementById('uye-eposta').value = '';
+    document.getElementById('uye-telefon').value = '';
+    document.getElementById('uye-sifre').value = 'uye123';
+    document.getElementById('uye-submit-label').textContent = 'Kaydet';
+    document.getElementById('drawer').classList.remove('translate-x-full');
+    document.getElementById('overlay').classList.remove('opacity-0', 'pointer-events-none');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.add('translate-x-full');
+    document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+    {% if duzenlenecek %}
+    if (window.location.search.includes('duzenle=')) {
+      window.location = "{{ url_for('uyeler', q=q, durum=durum) }}";
+    }
+    {% endif %}
+  }
+  {% if duzenlenecek %}
+  (function() {
+    document.getElementById('drawer-title').textContent = 'Üye Düzenle';
+    document.getElementById('uye-eylem').value = 'guncelle';
+    document.getElementById('uye-id').value = '{{ duzenlenecek.uye_id }}';
+    document.getElementById('uye-no-wrap').style.display = 'none';
+    document.getElementById('uye-sifre-wrap').style.display = 'none';
+    document.getElementById('uye-ad').value = {{ duzenlenecek.ad|tojson }};
+    document.getElementById('uye-soyad').value = {{ duzenlenecek.soyad|tojson }};
+    document.getElementById('uye-eposta').value = {{ duzenlenecek.eposta|tojson }};
+    document.getElementById('uye-telefon').value = {{ duzenlenecek.telefon|tojson }};
+    document.getElementById('uye-tip').value = {{ duzenlenecek.tip|tojson }};
+    document.getElementById('uye-submit-label').textContent = 'Güncelle';
+    document.getElementById('drawer').classList.remove('translate-x-full');
+    document.getElementById('overlay').classList.remove('opacity-0', 'pointer-events-none');
+  })();
+  {% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Kitaplar — Atlas Kütüphane{% endblock %}
+{% block crumb %}Kitaplar{% endblock %}
+{% block content %}
+<div class="px-margin py-space-lg flex flex-col gap-space-lg">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-sm text-secondary mb-1">
+        <span class="material-symbols-outlined text-base">auto_stories</span>
+        <span class="text-[11px] uppercase tracking-widest font-semibold">Katalog &amp; Arşivleme</span>
+      </div>
+      <h1 class="font-display text-3xl text-on-surface">Kitaplar</h1>
+      <p class="text-sm text-on-surface-variant">Koleksiyon sınıflandırma ve envanter paneli</p>
+    </div>
+    <button type="button" onclick="openDrawer()"
+            class="h-10 px-space-lg rounded-lg bg-primary text-on-primary font-semibold text-sm flex items-center gap-space-xs">
+      <span class="material-symbols-outlined text-base">add</span>
+      Yeni Kitap
+    </button>
+  </div>
+
+  <form method="get" class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col lg:flex-row gap-space-md items-stretch lg:items-center">
+    <div class="relative flex-1 max-w-md">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+      <input name="q" value="{{ q }}" class="w-full h-10 pl-10 pr-3 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="Ad, yazar, ISBN veya kitap ID..."/>
+    </div>
+    <div class="flex flex-wrap gap-space-xs">
+      {% for f in ['all','Roman','Tarih','Bilim','Felsefe','Sanat'] %}
+      <a href="{{ url_for('kitaplar', kategori=f, q=q) }}"
+         class="h-8 px-3 rounded-full text-xs font-medium flex items-center
+         {% if kategori == f %}bg-primary text-on-primary{% else %}bg-surface-container text-on-surface-variant{% endif %}">
+        {{ 'Tümü' if f == 'all' else f }}
+      </a>
+      {% endfor %}
+    </div>
+    <button class="h-10 px-4 rounded-lg bg-surface-container text-sm font-semibold">Ara</button>
+  </form>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm">
+      <span class="text-[11px] uppercase text-on-surface-variant">Toplam Eser</span>
+      <div class="text-2xl font-display mt-1">{{ kitaplar|length }}</div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm">
+      <span class="text-[11px] uppercase text-on-surface-variant">Rafta Müsait</span>
+      <div class="text-2xl font-display mt-1">{{ musait }}</div>
+    </div>
+    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm">
+      <span class="text-[11px] uppercase text-on-surface-variant">Tükenen</span>
+      <div class="text-2xl font-display mt-1 text-error">{{ kitaplar|length - musait }}</div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+    {% if kitaplar %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="bg-surface-container text-on-surface-variant text-[11px] uppercase tracking-wider">
+            <th class="py-3 px-4">Kitap</th>
+            <th class="py-3 px-4">Yazar</th>
+            <th class="py-3 px-4">Kategori</th>
+            <th class="py-3 px-4">Raf</th>
+            <th class="py-3 px-4">Adet</th>
+            <th class="py-3 px-4">Durum</th>
+            <th class="py-3 px-4 text-right">İşlem</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container">
+          {% for k in kitaplar %}
+          <tr class="hover:bg-surface-container-low">
+            <td class="py-3 px-4">
+              <div class="font-semibold">{{ k.ad }}</div>
+              <div class="text-[11px] text-on-surface-variant">ISBN: {{ k.isbn }} · ID: {{ k.kitap_id }}</div>
+            </td>
+            <td class="py-3 px-4 text-on-surface-variant">{{ k.yazar }}</td>
+            <td class="py-3 px-4"><span class="px-2 py-1 rounded bg-surface-container text-xs">{{ k.kategori_ad }}</span></td>
+            <td class="py-3 px-4"><span class="px-2 py-1 rounded bg-surface-container-high text-secondary text-xs font-semibold">{{ k.raf_konumu }}</span></td>
+            <td class="py-3 px-4 font-semibold {% if not k.musait_mi() %}text-error{% endif %}">{{ k.musait_adet }}/{{ k.toplam_adet }}</td>
+            <td class="py-3 px-4">
+              {% if k.musait_mi() %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-container text-[11px] font-semibold">Müsait</span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-semibold">Rafta yok</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <a href="{{ url_for('kitaplar', duzenle=k.kitap_id, q=q, kategori=kategori) }}"
+                 class="inline-flex w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container items-center justify-center text-on-surface-variant" title="Düzenle">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </a>
+              <form method="post" class="inline" onsubmit="return confirm('Bu kitabı silmek istediğinize emin misiniz?');">
+                <input type="hidden" name="eylem" value="sil"/>
+                <input type="hidden" name="kitap_id" value="{{ k.kitap_id }}"/>
+                <button class="inline-flex w-8 h-8 rounded-lg bg-surface-container-low hover:bg-error-container items-center justify-center text-on-surface-variant" title="Sil">
+                  <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      {% with icon='menu_book', title='Kitap bulunamadı', message='Arama kriterlerinize uyan eser yok. Yeni kitap ekleyebilir veya filtreyi temizleyebilirsiniz.' %}
+        {% include '_empty.html' %}
+      {% endwith %}
+    {% endif %}
+  </div>
+</div>
+
+<div id="overlay" class="fixed inset-0 bg-primary/40 z-50 opacity-0 pointer-events-none transition-opacity" onclick="closeDrawer()"></div>
+<aside id="drawer" class="fixed top-0 right-0 h-full w-full max-w-[460px] bg-surface-container-lowest shadow-2xl z-50 flex flex-col transition-transform translate-x-full">
+  <div class="p-space-lg bg-surface-container flex items-start justify-between">
+    <div>
+      <div class="text-[11px] uppercase tracking-widest text-secondary font-semibold mb-1">Arşiv Kayıt Formu</div>
+      <h2 class="font-display text-2xl">{% if duzenlenecek %}Kitap Düzenle{% else %}Yeni Kitap{% endif %}</h2>
+    </div>
+    <a href="{{ url_for('kitaplar', q=q, kategori=kategori) }}" class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center" onclick="closeDrawer(); return {{ 'false' if duzenlenecek else 'true' }};">
+      <span class="material-symbols-outlined">close</span>
+    </a>
+  </div>
+  <form method="post" class="p-space-lg flex flex-col gap-space-md flex-1 overflow-y-auto">
+    <input type="hidden" name="eylem" value="{{ 'guncelle' if duzenlenecek else 'ekle' }}"/>
+    {% if duzenlenecek %}<input type="hidden" name="kitap_id" value="{{ duzenlenecek.kitap_id }}"/>{% endif %}
+    <div>
+      <label class="text-xs text-on-surface-variant font-medium">ISBN</label>
+      <input name="isbn" required value="{{ duzenlenecek.isbn if duzenlenecek else '' }}" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="978-975-..."/>
+    </div>
+    <div>
+      <label class="text-xs text-on-surface-variant font-medium">Kitap Adı</label>
+      <input name="ad" required value="{{ duzenlenecek.ad if duzenlenecek else '' }}" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+    </div>
+    <div>
+      <label class="text-xs text-on-surface-variant font-medium">Yazar</label>
+      <input name="yazar" required value="{{ duzenlenecek.yazar if duzenlenecek else '' }}" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+    </div>
+    <div class="grid grid-cols-2 gap-space-md">
+      <div>
+        <label class="text-xs text-on-surface-variant font-medium">Yayınevi</label>
+        <input name="yayinevi" required value="{{ duzenlenecek.yayinevi if duzenlenecek else '' }}" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+      </div>
+      <div>
+        <label class="text-xs text-on-surface-variant font-medium">Yayın Yılı</label>
+        <input name="yayin_yili" type="number" value="{{ duzenlenecek.yayin_yili if duzenlenecek else 2024 }}" required class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+      </div>
+    </div>
+    <div>
+      <label class="text-xs text-on-surface-variant font-medium">Kategori</label>
+      <select name="kategori" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none">
+        {% for c in kategoriler %}
+        <option value="{{ c.ad }}" {% if duzenlenecek and duzenlenecek.kategori_ad == c.ad %}selected{% endif %}>{{ c.ad }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grid grid-cols-2 gap-space-md">
+      <div>
+        <label class="text-xs text-on-surface-variant font-medium">Toplam Adet</label>
+        <input name="toplam_adet" type="number" min="1" value="{{ duzenlenecek.toplam_adet if duzenlenecek else 1 }}" required class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none"/>
+      </div>
+      <div>
+        <label class="text-xs text-on-surface-variant font-medium">Raf Konumu</label>
+        <input name="raf_konumu" required value="{{ duzenlenecek.raf_konumu if duzenlenecek else '' }}" class="w-full h-10 px-3 mt-1 rounded-lg bg-surface-container-low text-sm focus:outline-none" placeholder="A-12"/>
+      </div>
+    </div>
+    <div class="mt-auto flex justify-end gap-space-sm pt-4">
+      <a href="{{ url_for('kitaplar', q=q, kategori=kategori) }}" class="h-10 px-4 rounded-lg bg-surface-container-high text-sm font-semibold flex items-center">Vazgeç</a>
+      <button type="submit" class="h-10 px-6 rounded-lg bg-primary text-on-primary text-sm font-semibold">{{ 'Güncelle' if duzenlenecek else 'Kaydet' }}</button>
+    </div>
+  </form>
+</aside>
+{% endblock %}
+{% block scripts %}
+<script>
+  function openDrawer() {
+    document.getElementById('drawer').classList.remove('translate-x-full');
+    const o = document.getElementById('overlay');
+    o.classList.remove('opacity-0', 'pointer-events-none');
+  }
+  function closeDrawer() {
+    {% if duzenlenecek %}
+    window.location = "{{ url_for('kitaplar', q=q, kategori=kategori) }}";
+    {% else %}
+    document.getElementById('drawer').classList.add('translate-x-full');
+    document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+    {% endif %}
+  }
+  {% if duzenlenecek %}
+  document.getElementById('drawer').classList.remove('translate-x-full');
+  document.getElementById('overlay').classList.remove('opacity-0', 'pointer-events-none');
+  {% endif %}
+</script>
+{% endblock %}
