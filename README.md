@@ -1,234 +1,57 @@
-# Atlas Kütüphane Otomasyon Sistemi
+# Atlas Kütüphane Otomasyon Sistemi 📚
 
-Üniversite ödevi için hazırlanmış web tabanlı kütüphane otomasyonu.
-Arayüz **Stitch** ile tasarlandı; uygulama **Python Flask + SQLite** ile yazıldı.
+Bu proje, üniversite ödevi kapsamında geliştirilmiş web tabanlı bir kütüphane otomasyon sistemidir. Backend tarafında **Python (Flask)** ve **SQLite** kullanılarak geliştirilmiş, ön yüz tasarımı ise **Stitch** baz alınarak **Tailwind CSS** ve **Jinja2** şablon motoruyla hazırlanmıştır. 
 
-İki kapı var:
+Sistem temel olarak iki farklı kullanıcı profiline hizmet verir:
+1. **Personel Paneli:** Kütüphane görevlilerinin kitap, üye, ödünç/iade işlemleri ile ceza ve rapor takibini yaptığı yönetim kısmı.
+2. **Üye Portalı:** Üyelerin kütüphane kataloğunu inceleyebildiği, kendi ödünç geçmişlerini, cezalarını ve profil bilgilerini takip edebildiği kişisel alan.
 
-1. **Personel paneli** — kitap, üye, ödünç, iade, ceza, rapor
-2. **Üye portalı** — katalog, kendi ödünç/ceza kayıtları, profil
-
-Ödünç verme ve iade bankoda görevli tarafından yapılır; üye yalnızca takip eder.
+*(Not: Tüm fiziksel ödünç verme ve iade alma işlemleri bankodaki personel tarafından yapılır; üyeler sistem üzerinden sadece durumlarını takip edebilirler.)*
 
 ---
 
-## Kurallar (özet)
+## 📌 Temel Kurallar ve İş Mantığı (Özet)
 
-| Kural | Değer |
-|--------|--------|
-| Standart ödünç süresi | 14 gün |
-| Günlük gecikme cezası | 15 TL |
-| Süre uzatma | +7 gün, bir kez (gecikmişte yok) |
-| Limit | Öğrenci 5 · İdari 8 · Akademisyen 15 |
+Uygulama içerisinde aşağıdaki iş kuralları (business rules) kodlanmıştır:
 
-Yeni ödünç engellenir: pasif üye, ödenmemiş ceza, gecikmiş kitap, aynı kitaptan ikinci açık ödünç, limit dolu.
+| Kural | Değer / Açıklama |
+| :--- | :--- |
+| **Standart Ödünç Süresi** | 14 gün |
+| **Gecikme Cezası** | Günlük 15 TL |
+| **Süre Uzatma** | Sadece 1 kez, +7 gün uzatılabilir. (Gecikmiş kitaplarda uzatma yapılamaz.) |
+| **Ödünç Alma Limitleri** | Öğrenci: 5 Kitap <br> İdari Personel: 8 Kitap <br> Akademisyen: 15 Kitap |
 
----
-
-## Teknolojiler
-
-| Katman | Seçim | Neden |
-|--------|--------|--------|
-| Dil | Python 3 | OOP / sınıf diyagramı |
-| Web | Flask | Küçük proje, hızlı kurulum |
-| Veri | SQLite (`kutuphane.db`) | Tek dosya, kurulum yok |
-| Arayüz | Jinja2 + Tailwind CDN + Material Symbols | Stitch çıktısına yakın |
-| Şifre | Werkzeug hash | Düz metin tutulmaz |
+**Ödünç İşlemini Engelleyen Durumlar:**
+Bir üyeye yeni kitap verilebilmesi için; üyenin hesabının "aktif" olması, ödenmemiş cezasının bulunmaması, elinde gecikmiş bir kitap olmaması, aynı kitaptan ikinci bir kopyayı almamış olması ve kendi üyelik tipine ait ödünç limitini doldurmamış olması gerekir.
 
 ---
 
-## Mimari
+## 🛠️ Kullanılan Teknolojiler ve Tercih Nedenleri
 
-```
-templates/     →  ekranlar (personel + üye)
-app.py         →  rotalar, oturum, form
-models.py      →  domain sınıfları (diyagram temeli)
-database.py    →  SQLite şema, sorgular, seed, iş kuralları
-kutuphane.db   →  kalıcı veri (ilk çalıştırmada oluşur)
-```
-
-- Session: personel → `personel_id`, üye → `uye_id`
-- Üye üst barındaki sayılar hafif sorgu (`uye_ozet_sayilar`); özet sayfası listeleri ayrıca çeker
-- Ödünç limiti tek kaynak: `Uye.max_odunc_hakki()` → `Kutuphane.max_odunc_icin()`
-- Form sonrası `next` yalnızca aynı sitedeki göreli yollara yönlendirilir
-- `SECRET_KEY` ortam değişkeninden okunur; yoksa ödev varsayılanı kullanılır
-
-Tablolar: `kategori`, `kitap`, `uye`, `personel`, `odunc`, `ceza`.
+| Katman | Teknoloji | Neden Tercih Ettim? |
+| :--- | :--- | :--- |
+| **Dil** | Python 3 | Nesne Yönelimli Programlama (OOP) yapısına uygunluğu ve UML diyagramları ile birebir eşleşebilmesi. |
+| **Web Çerçevesi** | Flask | Proje ölçeğine uygun, gereksiz bağımlılıklardan uzak ve hızlı ayağa kaldırılabilir olması. |
+| **Veritabanı** | SQLite (`kutuphane.db`) | Ekstra bir sunucu kurulumu gerektirmemesi ve veritabanının tek bir dosyada tutulabilmesi. |
+| **Arayüz (Frontend)** | Jinja2 + Tailwind CSS (CDN) + Material Symbols | Flask ile dinamik sayfa oluşturma kolaylığı ve hızlı, modern bir görünüm elde etmek. |
+| **Güvenlik** | Werkzeug (Hash) | Kullanıcı ve üye şifrelerinin veritabanında düz metin (plain text) yerine şifrelenerek tutulması. |
 
 ---
 
-## Klasör yapısı
+## 🏗️ Proje Mimarisi ve Klasör Yapısı
 
-```
+Uygulama temel olarak MVC (Model-View-Controller) mantığına yakın, hafif bir yapıda kurgulandı:
+
+```text
 Kütüphane Otomasyon Sistemi/
-├── app.py
-├── models.py
-├── database.py
-├── kutuphane.db          # ilk çalıştırmada oluşur
-├── requirements.txt
-├── README.md
-├── .gitignore
-└── templates/
-    ├── index.html            # kapı seçimi
-    ├── base.html             # personel kabuğu
-    ├── giris.html, panel.html, kitaplar.html, uyeler.html
-    ├── uye_detay.html, odunc.html, cezalar.html, raporlar.html, ara.html
-    ├── uye_base.html         # üye kabuğu (üst menü + meta bar)
-    ├── uye_giris.html, uye_kayit.html, uye_panel.html
-    ├── uye_katalog.html, uye_oduncler.html, uye_cezalar.html, uye_profil.html
-    └── _empty.html
-```
-
----
-
-## Kurulum ve çalıştırma
-
-Python 3 yüklü olmalı.
-
-```powershell
-cd "C:\Users\memir\Desktop\Kütüphane Otomasyon Sistemi"
-pip install -r requirements.txt
-python app.py
-```
-
-Adres:
-
-```
-http://127.0.0.1:5000
-```
-
-İsteğe bağlı (üretim benzeri oturum anahtarı):
-
-```powershell
-$env:SECRET_KEY = "kendi-gizli-anahtarin"
-python app.py
-```
-
-Durdurmak: terminalde `Ctrl + C`.
-
-Veritabanını sıfırlamak için `kutuphane.db` dosyasını silip uygulamayı yeniden çalıştırın.
-
----
-
-## Demo girişler
-
-**Personel** — `/giris`
-
-| Alan | Değer |
-|------|--------|
-| Kullanıcı adı | `mehmet` |
-| Şifre | `1234` |
-
-**Üye** — `/uye/giris`
-
-| Alan | Değer |
-|------|--------|
-| Üye no / e-posta | `1001` veya `ayse@mail.com` |
-| Şifre | `uye123` |
-
-Diğer örnek üyeler (1002, 1003, …) aynı şifreyi kullanır.
-Ana sayfa (`/`) üye / personel seçimi gösterir.
-
----
-
-## Sayfalar
-
-### Ortak
-| Yol | Açıklama |
-|-----|----------|
-| `/` | Üye / personel seçimi |
-
-### Personel
-| Yol | Açıklama |
-|-----|----------|
-| `/giris` | Personel girişi |
-| `/panel` | Özet, yakın iadeler, gecikenler |
-| `/kitaplar` | Kitap CRUD, kategori filtresi |
-| `/uyeler` | Üye CRUD, pasif/aktif, şifre sıfırlama |
-| `/uyeler/<id>` | Üye detay (geçmiş + işlemler) |
-| `/odunc` | Ödünç ver, iade al, süre uzat |
-| `/cezalar` | Ceza listesi, ödendi işaretle |
-| `/raporlar` | Basit istatistikler |
-| `/ara` | Global arama (üye / kitap / ödünç) |
-
-### Üye portalı
-| Yol | Açıklama |
-|-----|----------|
-| `/uye/giris` | Giriş (üye no veya e-posta) |
-| `/uye/kayit` | Yeni üye kaydı |
-| `/uye/panel` | Özet (kota, aktif ödünçler, cezalar) |
-| `/uye/katalog` | Katalog arama (ödünç vermez) |
-| `/uye/oduncler` | Kişisel ödünçler (filtre + arama) |
-| `/uye/cezalar` | Bekleyen / ödenmiş cezalar |
-| `/uye/profil` | İletişim bilgisi ve şifre |
-
----
-
-## Sınıflar (ödev / diyagram)
-
-`models.py`:
-
-- **Kategori** — ad, açıklama
-- **Kitap** — ISBN, ad, yazar, adet, raf; `musait_mi()`, `adet_azalt()`, `adet_artir()`
-- **Uye** — üye no, iletişim; `tam_ad()`, `aktif_mi()`, `pasife_al()`, `aktiflestir()`, `max_odunc_hakki()`
-- **Personel** — kullanıcı adı, rol
-- **Odunc** — alış / planlanan iade / gerçek iade; `gecikti_mi()`, `gecikme_gunu()`, `iade_et()`, `sure_uzat()`
-- **Ceza** — gün, tutar, ödendi; `tutar_hesapla()`, `ode()`
-- **Kutuphane** — süre, ceza, limitler; `planlanan_iade_hesapla()`, `ceza_hesapla()`, `max_odunc_icin()`
-
-Kalıcılık `database.py` üzerinden yapılır. `Kitap.adet_azalt/adet_artir`, `Uye.pasife_al/aktiflestir`, `Ceza.tutar_hesapla/ode` gibi metotlar **sınıf ve object diyagramında domain davranışını göstermek** için durur; çalışan akışta aynı kurallar SQL güncellemeleriyle uygulanır.
-
-**Object diyagramı örneği:** Ayşe Yılmaz (1001) → Suç ve Ceza → Mehmet Demir → bir `Odunc` kaydı.
-
-**Deployment:**
-
-```
-[ Tarayıcı ]  --HTTP-->  [ Flask (app.py :5000) ]  --SQL-->  [ kutuphane.db ]
-```
-
-Hepsi aynı makinede; ayrı veritabanı sunucusu yok.
-
----
-
-## Örnek veriler (seed)
-
-İlk açılışta yüklenir:
-
-- Kitaplar: Suç ve Ceza, Saatleri Ayarlama Enstitüsü, Nutuk, Sapiens, Devlet, Tutunamayanlar, Beyaz Kale
-- Üyeler: 1001 Ayşe Yılmaz, 1002 Kerem Acar, 1003 Deniz Koç, …
-- Personel: Mehmet Demir (`mehmet`)
-- Birkaç açık / gecikmiş ödünç ve örnek ceza
-
----
-
-## Ödev teslimi
-
-- Class diyagramı → `models.py` sınıfları
-- Object diyagramı → tek ödünç senaryosu (yukarıdaki örnek)
-- Deployment diyagramı → tarayıcı / Flask / SQLite
-- Kod → bu klasör
-
-Diyagramlar duyuruya göre A3 veya A4 kâğıda çizilip poşet dosyada verilir.
-
----
-
-## Bilinen sınırlar
-
-- Flask development server (üretim sunucusu değil)
-- Tek demo personel hesabı
-- Rezervasyon, e-posta bildirimi, barkod yazıcı yok
-- Tailwind CDN için internet gerekir
-- CSRF yok (ödev prototipi)
-- Flash mesajlarında düz şifre gösterilmez; sıfırlama sonrası şifreyi güvenli kanaldan paylaşın
-
----
-
-## Kontrol listesi
-
-- [ ] `pip install -r requirements.txt`
-- [ ] `python app.py`
-- [ ] Personel: `mehmet` / `1234` → kitap → üye → ödünç → iade
-- [ ] Gecikmede ceza oluştuğunu kontrol et
-- [ ] Üye: `1001` / `uye123` → özet, katalog, ödünçler, cezalar, profil
-- [ ] Raporlar ve global arama
-- [ ] Diyagramları çiz
+├── app.py               # (Controller) Yönlendirmeler, oturum yönetimi ve form işlemleri
+├── models.py            # (Model) Nesne sınıfları (UML diyagramımızın temel kaynağı)
+├── database.py          # Veritabanı bağlantısı, şema oluşturma, seed veriler ve SQL sorguları
+├── kutuphane.db         # Kalıcı veritabanı (Uygulama ilk kez çalıştığında otomatik oluşur)
+├── requirements.txt     # Gerekli kütüphaneler listesi
+├── README.md            # Proje dökümantasyonu
+└── templates/           # (View) HTML arayüz dosyaları
+    ├── index.html       # Karşılama ve portal seçimi
+    ├── base.html        # Personel paneli ana şablonu
+    ├── uye_base.html    # Üye portalı ana şablonu
+    └── ... Diğer sayfa tasarımları
